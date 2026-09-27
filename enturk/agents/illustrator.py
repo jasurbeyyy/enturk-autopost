@@ -75,6 +75,65 @@ def compose(raw: bytes, *, logo_path: Path, font_bold: Path, font_regular: Path,
     return out.getvalue()
 
 
+def _wrap(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int) -> list[str]:
+    words, lines, cur = text.split(), [], ""
+    for w in words:
+        test = (cur + " " + w).strip()
+        if draw.textlength(test, font=font) <= max_w:
+            cur = test
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def fallback_art(*, title: str, label: str, sublabel: str, red: str, font_bold: Path,
+                 font_regular: Path, size: tuple[int, int] = (1080, 1350)) -> bytes:
+    """Rasm modeli ishlamasa: qizil-oq brend kartochka (naqsh + mavzu nomi)."""
+    W, H = size
+    img = Image.new("RGB", (W, H), "#FFF8F3")
+    d = ImageDraw.Draw(img)
+    # yengil lola/yulduz naqshi
+    pale = "#F7D9DB"
+    for yi, y in enumerate(range(-40, H, 120)):
+        for x in range(-40 + (60 if yi % 2 else 0), W, 120):
+            d.ellipse((x - 14, y - 22, x + 14, y + 10), fill=pale)          # lola guli
+            d.polygon([(x - 18, y - 8), (x - 6, y - 30), (x, y - 12)], fill=pale)
+            d.polygon([(x + 18, y - 8), (x + 6, y - 30), (x, y - 12)], fill=pale)
+            d.line((x, y + 10, x, y + 34), fill=pale, width=4)
+    # markaziy karta
+    m, top, bottom = 90, 250, H - 330
+    d.rounded_rectangle((m + 10, top + 14, W - m + 10, bottom + 14), radius=48, fill="#E9C9C9")
+    d.rounded_rectangle((m, top, W - m, bottom), radius=48, fill="#FFFFFF", outline=red, width=8)
+    # rubrika yorlig'i
+    f_lab = _font(font_bold, 40)
+    lab_w = d.textlength(label, font=f_lab) + 70
+    d.rounded_rectangle(((W - lab_w) / 2, top - 38, (W + lab_w) / 2, top + 38), radius=38, fill=red)
+    d.text((W / 2, top), label, font=f_lab, fill="#FFFFFF", anchor="mm")
+    # sarlavha
+    size_t = 84
+    while size_t > 44:
+        f_t = _font(font_bold, size_t)
+        lines = _wrap(d, title, f_t, W - 2 * m - 110)
+        if len(lines) * size_t * 1.2 <= (bottom - top) - 220:
+            break
+        size_t -= 6
+    block_h = len(lines) * size_t * 1.2
+    y = top + ((bottom - top) - block_h) / 2 - 20
+    for ln in lines:
+        d.text((W / 2, y), ln, font=f_t, fill="#1F1F1F", anchor="ma")
+        y += size_t * 1.2
+    # daraja
+    f_sub = _font(font_regular, 36)
+    d.text((W / 2, bottom - 70), sublabel, font=f_sub, fill=red, anchor="mm")
+    out = io.BytesIO()
+    img.save(out, "PNG")
+    return out.getvalue()
+
+
 def _to_jpeg(raw: bytes, max_side: int = 768) -> bytes:
     im = Image.open(io.BytesIO(raw)).convert("RGB")
     im.thumbnail((max_side, max_side))
@@ -91,8 +150,15 @@ async def illustrate(gemini: GeminiClient, *, cfg: dict, root: Path, lang: str, 
                            motif=motif, red=cfg["brand"]["red"])
     raw = b""
     for attempt in range(3):
-        raw = await gemini.generate_image(prompt, aspect=cfg["models"].get("image_aspect", "4:5"),
-                                          size=cfg["models"].get("image_size", "1K"))
+        try:
+            raw = await gemini.generate_image(prompt, aspect=cfg["models"].get("image_aspect", "4:5"),
+                                              size=cfg["models"].get("image_size", "1K"))
+        except Exception as exc:  # noqa: BLE001 — billing yo'q, limit va h.k.
+            log.warning("Rasm modeli ishlamadi, brend kartochka chiziladi: %s", str(exc)[:200])
+            raw = fallback_art(title=topic or label, label=label, sublabel=sublabel,
+                               red=cfg["brand"]["red"], font_bold=root / "assets" / "font-bold.ttf",
+                               font_regular=root / "assets" / "font-regular.ttf")
+            break
         if not check:
             break
         try:
