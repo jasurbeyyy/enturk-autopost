@@ -121,9 +121,14 @@ async def check(s: Settings) -> None:
                 res(True, f"Gemini matn modeli ({s.cfg['models']['text']}): {txt.strip()[:30]}")
                 txt, src = await g.generate_text("Answer briefly.", "What is today's date? One line.",
                                                  search=True, json_mode=False)
-                res(True, f"Gemini + Google Search: {txt.strip()[:60]}")
+                res(True, f"Gemini matn (qidiruv bilan yoki usiz): {txt.strip()[:60]}")
             except GeminiError as exc:
-                res(False, f"Gemini: {exc}")
+                res(False, f"Gemini matn: {str(exc)[:200]}")
+            try:
+                img = await g.generate_image("A small red tulip on a white background, flat vector, no text.")
+                res(True, f"Gemini rasm modeli ({s.cfg['models']['image']}): {len(img)//1024} KB rasm yaratildi")
+            except GeminiError as exc:
+                res(False, f"Gemini rasm modeli: {str(exc)[:200]}")
             finally:
                 await g.aclose()
         else:

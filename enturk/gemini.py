@@ -70,6 +70,9 @@ class GeminiClient:
             if r.status_code == 200:
                 return r.json()
             msg = r.text[:500]
+            if r.status_code == 429 and "quota" in msg.lower() and "billing" in msg.lower():
+                # kunlik/tarif limiti — kutishdan foyda yo'q
+                raise GeminiError(429, "QUOTA: " + msg)
             if r.status_code in RETRY_STATUSES and attempt < attempts:
                 log.warning("Gemini %s, %.0fs dan so'ng qayta urinish: %s", r.status_code, delay, msg)
                 await asyncio.sleep(delay)
@@ -104,7 +107,16 @@ class GeminiClient:
         elif json_mode:
             body["generationConfig"]["responseMimeType"] = "application/json"
 
-        resp = await self._post(self.text_model, body)
+        try:
+            resp = await self._post(self.text_model, body)
+        except GeminiError as exc:
+            if not (search and exc.status == 429):
+                raise
+            log.warning("Google Search limiti tugagan — qidiruvsiz davom etiladi")
+            body.pop("tools", None)
+            if json_mode:
+                body["generationConfig"]["responseMimeType"] = "application/json"
+            resp = await self._post(self.text_model, body)
         text = "".join(p.get("text", "") for p in self._parts(resp)
                        if not p.get("thought") and "text" in p)
         sources: list[str] = []
