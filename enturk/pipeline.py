@@ -87,7 +87,7 @@ class Pipeline:
         level = planner.pick_least_used(pt["levels"], ctx["recent_levels"])
         style = planner.pick_style(s.styles, type_key, ctx["recent_styles"], exclude=exclude_style)
         exam = planner.pick_least_used(pt["exams"], ctx["recent_exams"]) if pt.get("exams") else None
-        footer = cap.build_footer(pt.get("audio_line"), s.cfg["signature"],
+        footer = cap.build_footer(pt.get("audio_line") if s.audio_enabled else None, s.cfg["signature"],
                                   [pt.get("hashtag", type_key), level])
         _, footer_text = cap.sanitize(footer)
         body_limit = cap.CAPTION_LIMIT - cap.visible_len(footer_text) - 30
@@ -176,10 +176,13 @@ class Pipeline:
             self.gemini, cfg=s.cfg, root=ROOT, lang=lang,
             brief=draft.get("image_brief") or res.get("image_idea", ""),
             topic=draft.get("topic") or res.get("topic", ""), label=label, sublabel=sublabel)
-        audio_task = voice.synthesize(
-            self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,
-            pause_ms=int(s.cfg["elevenlabs"].get("pause_ms", 650)))
-        image, audio = await asyncio.gather(image_task, audio_task)
+        if s.audio_enabled:
+            audio_task = voice.synthesize(
+                self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,
+                pause_ms=int(s.cfg["elevenlabs"].get("pause_ms", 650)))
+            image, audio = await asyncio.gather(image_task, audio_task)
+        else:
+            image, audio = await image_task, b""
 
         qa_meta = {"verdict": qa_result.get("verdict"), "score": qa_result.get("score"),
                    "issues": qa_result.get("issues", []), "exam": exam}

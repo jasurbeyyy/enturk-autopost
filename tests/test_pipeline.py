@@ -32,6 +32,7 @@ class ScriptedGemini(FakeGemini):
 def test_revision_loop(tmp_path):
     s = load_settings()
     s.data_dir = tmp_path
+    s.eleven_key = "test"
     for k in s.cfg["elevenlabs"]["voices"]:
         s.cfg["elevenlabs"]["voices"][k] = f"mock-{k.split('_')[1]}"
     g = ScriptedGemini()

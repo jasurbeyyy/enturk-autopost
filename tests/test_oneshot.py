@@ -60,6 +60,7 @@ def env(tmp_path, monkeypatch):
     s.admin_ids = [111]
     s.channel = "@EnTurk_CSR"
     s.data_dir = tmp_path
+    s.eleven_key = "test"
     for k in s.cfg["elevenlabs"]["voices"]:
         s.cfg["elevenlabs"]["voices"][k] = f"mock-{k.split('_')[1]}"
     # 2026-09-28 dushanba, 07:07 Toshkent
@@ -124,3 +125,13 @@ def test_test_post_times_out_without_publishing(env):
     asyncio.run(_runner(s, db, tg).run(test_type="haqiqiy_diolog"))
     assert not [x for x in tg.sent if x[1] == "@EnTurk_CSR"]
     assert "Sinov tugadi" in tg.edits[-1]
+
+
+def test_without_elevenlabs_posts_photo_only(env):
+    s, db, clock = env
+    s.eleven_key = ""
+    tg = FakeTG(clock)
+    asyncio.run(_runner(s, db, tg).run())
+    chan = [x for x in tg.sent if x[1] == "@EnTurk_CSR"]
+    assert [x[0] for x in chan] == ["photo"]
+    assert "🎧" not in chan[0][2]

@@ -36,6 +36,11 @@ class Settings:
             raise KeyError(f"Noma'lum post turi: {key}") from exc
 
     @property
+    def audio_enabled(self) -> bool:
+        """ElevenLabs kaliti bo'lmasa, postlar audiosiz chiqadi."""
+        return bool(self.eleven_key) and os.getenv("AUDIO", "1") != "0"
+
+    @property
     def media_dir(self) -> Path:
         p = self.data_dir / "media"
         p.mkdir(parents=True, exist_ok=True)

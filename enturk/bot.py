@@ -112,9 +112,10 @@ class Coordinator:
         img = self.s.media_dir / f"{draft_id}.jpg"
         aud = self.s.media_dir / f"{draft_id}.mp3"
         img.write_bytes(r.image)
-        aud.write_bytes(r.audio)
+        if r.audio:
+            aud.write_bytes(r.audio)
         self.db.update(draft_id, level=r.level, style_id=r.style_id, topic=r.topic, title=r.title,
-                       caption=r.caption_html, image_path=str(img), audio_path=str(aud),
+                       caption=r.caption_html, image_path=str(img), audio_path=str(aud) if r.audio else None,
                        audio_title=r.audio_title, items=r.items, sources=r.sources, qa=r.qa,
                        status="ready")
         d = self.db.get(draft_id)
@@ -177,9 +178,10 @@ class Coordinator:
         try:
             with open(d["image_path"], "rb") as f:
                 await bot.send_photo(self.admin, photo=f, caption=d["caption"], parse_mode=ParseMode.HTML)
-            with open(d["audio_path"], "rb") as f:
-                await bot.send_audio(self.admin, audio=f, title=d["audio_title"] or "Talaffuz",
-                                     performer="EnTurk_CSR", filename=f"enturk_{draft_id}.mp3")
+            if d.get("audio_path"):
+                with open(d["audio_path"], "rb") as f:
+                    await bot.send_audio(self.admin, audio=f, title=d["audio_title"] or "Talaffuz",
+                                         performer="EnTurk_CSR", filename=f"enturk_{draft_id}.mp3")
         except TelegramError as exc:
             log.exception("Preview yuborilmadi #%s", draft_id)
             self.db.update(draft_id, status="failed", error=f"preview: {exc}")
@@ -208,9 +210,10 @@ class Coordinator:
             with open(d["image_path"], "rb") as f:
                 m = await bot.send_photo(self.s.channel, photo=f, caption=d["caption"],
                                          parse_mode=ParseMode.HTML)
-            with open(d["audio_path"], "rb") as f:
-                await bot.send_audio(self.s.channel, audio=f, title=d["audio_title"] or "Talaffuz",
-                                     performer="EnTurk_CSR", filename=f"enturk_{draft_id}.mp3")
+            if d.get("audio_path"):
+                with open(d["audio_path"], "rb") as f:
+                    await bot.send_audio(self.s.channel, audio=f, title=d["audio_title"] or "Talaffuz",
+                                         performer="EnTurk_CSR", filename=f"enturk_{draft_id}.mp3")
         except TelegramError as exc:
             log.exception("Kanalga chiqmadi #%s", draft_id)
             self.db.update(draft_id, status="previewed", error=f"publish: {exc}")

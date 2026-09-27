@@ -86,6 +86,7 @@ def coord(tmp_path, monkeypatch):
     monkeypatch.setenv("CHANNEL_ID", "@EnTurk_CSR")
     s = load_settings()
     s.data_dir = tmp_path
+    s.eleven_key = "test"
     s.admin_ids = [111]
     for k in s.cfg["elevenlabs"]["voices"]:
         s.cfg["elevenlabs"]["voices"][k] = f"mock-{k.split('_')[1]}"

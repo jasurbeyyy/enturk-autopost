@@ -132,7 +132,7 @@ async def check(s: Settings) -> None:
             finally:
                 await e.aclose()
         else:
-            res(False, "ELEVENLABS_API_KEY yo'q")
+            print("⚪ ElevenLabs kaliti yo'q — postlar audiosiz chiqadi (keyin qo'shish mumkin)")
     print("\nHammasi tayyor! 🎉" if ok else "\nYuqoridagi ❌ bandlarni tuzating.")
 
 

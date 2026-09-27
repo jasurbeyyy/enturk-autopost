@@ -189,7 +189,8 @@ class SlotRunner:
 
             # 2) ko'rsatish
             await self.tg.send_photo(self.admin, r.image, r.caption_html)
-            await self.tg.send_audio(self.admin, r.audio, r.audio_title)
+            if r.audio:
+                await self.tg.send_audio(self.admin, r.audio, r.audio_title)
             pub = None if test else planner.publish_at(slot, utcnow(), self.prev_before)
             ctrl = await self.tg.send_message(self.admin, self.control_text(d, pub), keyboard(did, test))
             self.db.update(did, status="previewed", publish_at=pub, control_chat_id=ctrl["chat"]["id"],
@@ -220,7 +221,8 @@ class SlotRunner:
         for attempt in range(3):
             try:
                 m = await self.tg.send_photo(self.s.channel, r.image, r.caption_html)
-                await self.tg.send_audio(self.s.channel, r.audio, r.audio_title)
+                if r.audio:
+                    await self.tg.send_audio(self.s.channel, r.audio, r.audio_title)
                 break
             except TelegramError as exc:
                 log.warning("Kanalga chiqmadi (%s): %s", attempt + 1, exc)
