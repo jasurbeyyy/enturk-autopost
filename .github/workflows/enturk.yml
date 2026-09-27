@@ -1,0 +1,84 @@
+name: EnTurk avtopost
+
+on:
+  schedule:
+    # GitHub vaqti UTC. Toshkent = UTC+5.
+    # 02:07 UTC = 07:07 Toshkent → 08:00 posti
+    # 07:07 UTC = 12:07 Toshkent → 13:00 posti
+    # 14:07 UTC = 19:07 Toshkent → 20:00 posti
+    - cron: "7 2,7,14 * * *"
+  workflow_dispatch:
+    inputs:
+      rejim:
+        description: "Nima qilamiz?"
+        type: choice
+        default: sinov_posti
+        options: [sinov_posti, navbatdagi_post, tekshirish, ovozlar]
+      tur:
+        description: "Sinov posti turi"
+        type: choice
+        default: yangi_sozlar
+        options: [yangi_sozlar, kunlik_iboralar, mavzuli_lugat, haqiqiy_diolog, hayotiy_maslahat,
+                  imtihon, haftalik_takrorlash, en_iboralar, en_diolog, en_sozlar]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: enturk-autopost
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      ADMIN_IDS: ${{ secrets.ADMIN_IDS }}
+      CHANNEL_ID: ${{ vars.CHANNEL_ID || '@EnTurk_CSR' }}
+      PAUSED: ${{ vars.PAUSED || '0' }}
+      DATA_DIR: state
+      TZ: Asia/Tashkent
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Kutubxonalar
+        run: pip install -r requirements.txt
+
+      - name: Navbatdagi post
+        if: github.event_name == 'schedule' || inputs.rejim == 'navbatdagi_post'
+        run: python main.py --slot
+
+      - name: Sinov posti
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'sinov_posti'
+        run: python main.py --test "${{ inputs.tur }}"
+
+      - name: Tekshirish
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'tekshirish'
+        run: python main.py --check
+
+      - name: Ovozlar ro'yxati
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'ovozlar'
+        run: python main.py --voices
+
+      - name: Tarixni saqlash (takrorlanmaslik uchun)
+        if: always()
+        run: |
+          git config user.name "enturk-bot"
+          git config user.email "enturk-bot@users.noreply.github.com"
+          git add state/enturk.db || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Post tarixi yangilandi [skip ci]"
+            git pull --rebase -X theirs || true
+            git push
+          fi

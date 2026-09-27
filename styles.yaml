@@ -1,0 +1,193 @@
+# ============================================================
+#  Uslublar banki. Har bir post turi uchun bir nechta uslub bor.
+#  Yozuvchi agent oxirgi postlarda ishlatilmagan uslubni tanlaydi.
+#  "example" — faqat SHAKL namunasi, mazmuni takrorlanmaydi.
+#  Imzo, xeshteg va audio qatorini tizim o'zi qo'shadi.
+# ============================================================
+styles:
+  - id: kartochka
+    name: "Kartochka"
+    applies_to: [yangi_sozlar, mavzuli_lugat, en_sozlar, haftalik_takrorlash]
+    instructions: >
+      Title line: theme emoji + bold "[LEVEL] THEME — N ta yangi so'z". Each item as a compact card:
+      a fitting emoji, bold target word, " — " Uzbek meaning, next line "› " + short example sentence.
+      Finish with 💡 a memory trick (word parts, similarity) and 🧩 a one-question mini quiz whose
+      answer is in a spoiler.
+    example: |
+      🍳 <b>[A1] OSHXONADA — 10 ta yangi so'z</b>
+
+      🥘 <b>tencere</b> — qozon
+      › Tencere ocakta.
+      🍳 <b>tava</b> — tova
+      › Tavada yumurta var.
+      🔪 <b>bıçak</b> — pichoq
+      › Bıçak çok keskin.
+      (… 10 tagacha …)
+
+      💡 buz (muz) + dolap (shkaf) = <b>buzdolabı</b>
+      🧩 "Qoshiq" turkchada qanday? → <tg-spoiler>kaşık</tg-spoiler>
+
+  - id: vaziyat_sahnasi
+    name: "Vaziyat sahnasi"
+    applies_to: [kunlik_iboralar, en_iboralar, hayotiy_maslahat]
+    instructions: >
+      Put the reader into a concrete scene ("Tasavvur qiling: …"). Numbered moments 1️⃣ 2️⃣ 3️⃣ … each
+      describing the situation in Uzbek, then "🗣 " + bold phrase + " — " Uzbek meaning.
+      End with a short "🇹🇷 Madaniyat:" (or "🇬🇧 Culture:") note.
+    example: |
+      ☕ <b>[A2] Kafedasiz. Nima deysiz?</b>
+
+      Tasavvur qiling: Istanbul, Kadıköy. Do'stingiz bilan kafega kirdingiz 👇
+
+      1️⃣ Menyuga qaradingiz, lekin tanlay olmayapsiz:
+      🗣 <b>Ne önerirsiniz?</b> — Nimani tavsiya qilasiz?
+
+      2️⃣ Ofitsiant ovqatni olib keldi:
+      🗣 <b>Afiyet olsun!</b> — Yoqimli ishtaha!
+
+      3️⃣ Ovqat juda mazali bo'ldi:
+      🗣 <b>Ellerinize sağlık!</b> — Qo'lingiz dard ko'rmasin!
+
+      🇹🇷 <b>Madaniyat:</b> "Ellerinize sağlık" ovqat tayyorlagan odamga aytiladi.
+
+  - id: chat
+    name: "Chat"
+    applies_to: [haqiqiy_diolog, en_diolog]
+    instructions: >
+      Bold title with a real-life context. Dialogue lines each starting with 👨 or 👩 (no names needed),
+      natural spoken language. Then "📌 Kalit so'zlar:" bullet list "• <b>word</b> — meaning".
+      End with an engaging question to the audience ("Izohda … yozing 👇").
+    example: |
+      🏠 <b>[B1] Ijaraga uy qidiryapsiz: uy egasi bilan suhbat</b>
+
+      👨 Merhaba, ilandaki daire hâlâ kiralık mı?
+      👩 Evet, kiralık. Ne zaman görmek istersiniz?
+      👨 Aidat kiraya dahil mi?
+      👩 Hayır, aidat ayrı. Depozito da iki kira.
+
+      📌 <b>Kalit so'zlar:</b>
+      • <b>kiralık</b> — ijaraga beriladigan
+      • <b>aidat</b> — bino xizmati uchun oylik to'lov
+      • <b>depozito</b> — garov puli
+
+      💬 Siz qanday savol bergan bo'lardingiz? Izohda turkcha yozing 👇
+
+  - id: qoida_guruh
+    name: "Qoida + guruh"
+    applies_to: [mavzuli_lugat, yangi_sozlar, en_sozlar]
+    instructions: >
+      Show a pattern: base word → derived word with the suffix/part in bold. Then "📌 Qoida:" one clear
+      rule compared to Uzbek if possible. Then a short block of example sentences. End with a task
+      for the comments.
+    example: |
+      🌦 <b>[A2] OB-HAVO: bitta qo'shimcha, 6 ta so'z</b>
+
+      ☀️ güneş → güneş<b>li</b> — quyoshli
+      ☁️ bulut → bulut<b>lu</b> — bulutli
+      🌧 yağmur → yağmur<b>lu</b> — yomg'irli
+
+      📌 <b>Qoida:</b> ot + <b>-lı / -li / -lu / -lü</b> = sifat. Xuddi o'zbekchadagi "-li" kabi!
+
+      🌧 Yağmur yağıyor. — Yomg'ir yog'yapti.
+      💨 Rüzgâr esiyor. — Shamol esyapti.
+
+      🗓 Bugun havo qanday? Izohda bitta gap yozing: <i>"Bugün hava …"</i>
+
+  - id: xato_togri
+    name: "Xato ❌ / To'g'ri ✅"
+    applies_to: [hayotiy_maslahat, kunlik_iboralar, en_iboralar]
+    instructions: >
+      A list of typical mistakes Uzbek speakers make. For each numbered item: ❌ wrong usage,
+      ✅ correct usage with Uzbek translation, and a one-line explanation (🇹🇷 or 🇬🇧).
+    example: |
+      ⚠️ <b>O'zbeklar adashadigan 5 ta "aldamchi" so'z</b>
+
+      1️⃣ <b>pul</b>
+      ❌ Pulum yok.
+      ✅ <b>Param</b> yok. — Pulim yo'q.
+      🇹🇷 Turkchada <i>pul</i> — pochta markasi.
+
+      2️⃣ <b>zor</b>
+      ✅ <i>Zor</i> — qiyin: Sınav çok zordu. — Imtihon juda qiyin edi.
+      "Zo'r" demoqchi bo'lsangiz: <b>Harika!</b>
+
+  - id: strategiya
+    name: "Strategiya"
+    applies_to: [imtihon]
+    instructions: >
+      Explain one exam section or task type. Short explanation of what the candidate does, a mini
+      sample (short text + 2-3 items) with answers in spoilers, then "🔑" 3 concrete rules/tips.
+    example: |
+      📝 <b>[B1–B2] Imtihon sirlari: D / Y / V savollari</b>
+
+      O'qish bo'limida matndan keyin gaplar beriladi:
+      ✅ <b>D (Doğru)</b> — matnda aynan shu aytilgan
+      ❌ <b>Y (Yanlış)</b> — matnda buning aksi aytilgan
+      ❔ <b>V (Verilmemiş)</b> — matnda bu haqida ma'lumot yo'q
+
+      📖 <i>Ahmet her sabah işe otobüsle gider.</i>
+      1) Ahmet işe arabayla gider. → <tg-spoiler>Y</tg-spoiler>
+
+      🔑 <b>3 ta qoida:</b>
+      • Qarama-qarshi fikr — <b>Y</b>, umuman gapirmasa — <b>V</b>.
+      • <i>her zaman, hiç, sadece</i> — ko'pincha tuzoq.
+
+  - id: challenge
+    name: "Challenge"
+    applies_to: [en_iboralar, en_sozlar, yangi_sozlar, kunlik_iboralar, haftalik_takrorlash]
+    instructions: >
+      Gamified: invite the reader to guess first. Numbered items with the target expression in bold
+      and the meaning hidden in a spoiler. End with "🏆 Nechtasini topdingiz? Izohda yozing 👇".
+    example: |
+      🇬🇧 <b>[B1] English Challenge: 5 ta kundalik idiom</b>
+
+      Avval ma'nosini o'zingiz topishga harakat qiling, keyin spoilerni oching 👇
+
+      1. It's <b>a piece of cake</b>. → <tg-spoiler>Juda oson</tg-spoiler>
+      2. I'm feeling <b>under the weather</b>. → <tg-spoiler>Biroz betobman</tg-spoiler>
+
+      🏆 Nechtasini topdingiz? Izohda yozing: 3/5, 5/5? 👇
+
+  - id: mini_hikoya
+    name: "Mini-hikoya"
+    applies_to: [yangi_sozlar, mavzuli_lugat, haqiqiy_diolog, en_diolog]
+    instructions: >
+      A very short story (4-7 sentences) in the target language where the target words are in bold.
+      Then a compact glossary "• <b>word</b> — meaning". End with one comprehension question with the
+      answer in a spoiler. Keep the story level-appropriate and warm.
+
+  - id: top5
+    name: "Top-5"
+    applies_to: [hayotiy_maslahat, imtihon, kunlik_iboralar]
+    instructions: >
+      A punchy "TOP-5" list (use 🥇🥈🥉4️⃣5️⃣). Each point: bold headline + 1-2 lines of explanation with
+      a concrete target-language example and Uzbek translation. End with a "⭐ Bonus:" tip.
+
+  - id: test
+    name: "Test"
+    applies_to: [haftalik_takrorlash, imtihon, yangi_sozlar]
+    instructions: >
+      A mini multiple-choice test. Each question numbered, options A) B) C) on one line, answer in a
+      spoiler "→ <tg-spoiler>B</tg-spoiler>". Mix question types. Short Uzbek instructions at the top.
+
+  - id: savol_javob
+    name: "Savol-javob"
+    applies_to: [imtihon, hayotiy_maslahat]
+    instructions: >
+      FAQ format: 3-5 questions a student really asks ("❓ …") each followed by a short clear answer
+      ("💬 …") with concrete examples. Friendly teacher voice.
+
+  - id: juftliklar
+    name: "Juftliklar"
+    applies_to: [mavzuli_lugat, kunlik_iboralar, en_iboralar]
+    instructions: >
+      Contrast pairs: formal vs informal, similar-looking words, or opposites. Show them side by side
+      "🎩 rasmiy: … | 👕 norasmiy: …" or "A ≠ B" with Uzbek meanings and one example each.
+
+  - id: diolog_boshqotirma
+    name: "Diolog-boshqotirma"
+    applies_to: [haqiqiy_diolog, en_diolog]
+    instructions: >
+      A short dialogue with 3-4 key words replaced by ___(1)___, ___(2)___ … Then a word bank and the
+      answers in spoilers: "1 → <tg-spoiler>word</tg-spoiler>". Then the Uzbek meanings of the answers.
+      The audio must contain the COMPLETE dialogue with the correct words.

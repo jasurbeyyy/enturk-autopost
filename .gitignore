@@ -1,0 +1,10 @@
+.env
+data/
+out/
+state/*
+!state/enturk.db
+!state/.gitkeep
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

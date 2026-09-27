@@ -1,0 +1,16 @@
+[Unit]
+Description=EnTurk_CSR avtopost boti
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=enturk
+WorkingDirectory=/opt/enturk-autopost
+ExecStart=/opt/enturk-autopost/.venv/bin/python main.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

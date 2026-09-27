@@ -1,0 +1,211 @@
+# ============================================================
+#  EnTurk_CSR avtomatik post tizimi — asosiy sozlamalar
+#  (maxfiy kalitlar bu yerda EMAS, .env faylida saqlanadi)
+# ============================================================
+
+timezone: Asia/Tashkent
+
+# Post chiqishidan necha daqiqa oldin tayyorlash boshlanadi
+generation_minutes_before: 40
+# Post chiqishidan necha daqiqa oldin adminga ko'rsatiladi
+preview_minutes_before: 10
+# Bot o'chiq bo'lib, vaqti o'tib ketgan post necha daqiqagacha baribir chiqariladi
+late_publish_grace_minutes: 180
+
+signature: "👉 @EnTurk_CSR"
+
+# ---------------- Modellar ----------------
+models:
+  text: gemini-3.8-flash          # 1, 2, 5-agentlar (tadqiqot, yozuvchi, sifat nazorati)
+  image: gemini-3.1-flash-image   # 3-agent: Nano Banana 2
+  image_aspect: "4:5"
+  image_size: "1K"
+
+elevenlabs:
+  model_id: eleven_v3
+  # ElevenLabs'dagi ovoz ID'lari (tools/list_voices.py orqali topiladi)
+  voices:
+    # Voice Library'dan tanlangan (elevenlabs.io'da har birini "Add to My Voices" qiling)
+    tr_female: "jk1pqab9OzEmS07w0u2T"   # AURA VOX — ayol, Istanbul talaffuzi, ta'limiy
+    tr_male: "qHdpkLDluFJPQyEvzZ5E"     # Mehmet Akif — erkak, standart turkcha, e-learning
+    en_female: "9BYUod15YOH2aePSd97v"   # Vanessa Voyce — ayol, amerikancha
+    en_male: "wDkXkmTqABGFuqM5TDga"     # Lucas — erkak, amerikancha, ingliz tili o'qituvchisi
+  pause_ms: 650
+
+# ---------------- Brend ----------------
+brand:
+  red: "#E30A17"
+  white: "#FFFFFF"
+  band_height: 150
+
+# Rasm uchun Turkiya motivlari (har safar biri tanlanadi)
+motifs_tr:
+  - Istanbul skyline with Galata Tower and mosque silhouettes at golden hour
+  - Bosphorus with white ferries and seagulls
+  - Turkish tea in tulip-shaped glasses on a small saucer
+  - fresh simit on a street cart
+  - red and white tulips
+  - blue and red Iznik tile patterns as decorative border
+  - Cappadocia hot-air balloons over fairy chimneys
+  - Grand Bazaar mosaic lanterns
+  - a nazar (evil eye) bead hanging by a window
+  - a cozy Istanbul street with colorful wooden houses and a red tram
+  - Turkish carpet and kilim patterns
+  - Turkish coffee with lokum on a copper tray
+motifs_en:
+  - a red double-decker bus on a city street
+  - a cozy library with a red armchair
+  - a classic red telephone box
+  - a modern café with large windows
+  - an open notebook with a red pen on a desk
+
+# ---------------- Post turlari ----------------
+post_types:
+  yangi_sozlar:
+    title: "Yangi so'zlar"
+    lang: tr
+    levels: [A1, A2, B1, B2]
+    hashtag: yangi_sozlar
+    audio_line: "🎧 Talaffuzni audioda eshiting"
+    narrator: female
+    requirements: >
+      Exactly 10 new Turkish words around ONE everyday theme. Each word: Turkish word in bold,
+      Uzbek meaning, and one short natural example sentence in Turkish (Uzbek translation of the
+      sentence is optional if space is tight). Add one memory tip or mini-quiz at the end.
+      Audio: each word, then its example sentence.
+  kunlik_iboralar:
+    title: "Kunlik iboralar"
+    lang: tr
+    levels: [A1, A2, B1, B2]
+    hashtag: kunlik_iboralar
+    audio_line: "🎧 Iboralarni audioda eshiting"
+    narrator: female
+    requirements: >
+      4-6 everyday Turkish phrases/expressions that real people use, grouped by a real-life situation.
+      Each with Uzbek meaning and when/how to use it. Include one short cultural note.
+      Audio: each Turkish phrase.
+  mavzuli_lugat:
+    title: "Mavzuli lug'at"
+    lang: tr
+    levels: [A1, A2, B1, B2]
+    hashtag: lugat
+    audio_line: "🎧 Talaffuzni audioda eshiting"
+    narrator: male
+    requirements: >
+      A themed mini-dictionary (6-10 items) organised in a smart way: by a grammar pattern, word family,
+      opposites, collocations or categories. Uzbek meanings, 2-4 example sentences, one interactive
+      prompt for comments. Audio: the Turkish items and example sentences.
+  haqiqiy_diolog:
+    title: "Haqiqiy diolog"
+    lang: tr
+    levels: [A2, B1, B2]
+    hashtag: diolog
+    audio_line: "🎧 Diolog audioda ikki ovozda"
+    narrator: dialogue
+    requirements: >
+      A realistic 6-10 line Turkish dialogue from real life in Türkiye (bank, doctor, rent, market,
+      work, university, phone call...). Two speakers (use 👨 and 👩 or names). Then 4-6 key words or
+      phrases with Uzbek meanings. End with an interactive question. Audio: the dialogue lines only,
+      speaker "male"/"female" matching the text.
+  hayotiy_maslahat:
+    title: "Hayotiy maslahat"
+    lang: tr
+    levels: [A2, B1, B2]
+    hashtag: maslahat
+    audio_line: "🎧 Turkcha misollar audioda"
+    narrator: female
+    requirements: >
+      Practical advice for learning or using Turkish in daily life (common mistakes of Uzbek speakers,
+      false friends, pronunciation traps, politeness, apps and habits, living/studying in Türkiye...).
+      Must contain concrete Turkish examples with Uzbek explanations. Audio: the Turkish examples.
+  imtihon:
+    title: "Imtihon ma'lumoti"
+    lang: tr
+    levels: [B1, B2, C1]
+    hashtag: imtihon
+    audio_line: "🎧 Misollar audioda"
+    narrator: male
+    exams:
+      - "Milliy sertifikat (turk tili) — O'zbekiston, uzbmb.uz"
+      - "Türkçe Yeterlilik Sınavı (Yunus Emre Enstitüsü TYS)"
+      - "TÖMER Türkçe yeterlilik sınavı (Ankara Üniversitesi TÖMER va boshqalar)"
+      - "CEFR bo'yicha turk tili darajalari (A1-C1) — umumiy talablar"
+      - "IELTS (ingliz tili)"
+      - "CEFR / Milliy sertifikat (ingliz tili)"
+    requirements: >
+      Useful, ACCURATE information about the given exam: format, sections, scoring, strategies, typical
+      traps, preparation tips, or verified news. Only include dates, fees, rules or numbers if they are
+      confirmed by the research sources; otherwise stay general. Include a mini example task with the
+      answer hidden in a spoiler when possible. Audio: the example sentences in the exam language.
+  haftalik_takrorlash:
+    title: "Haftalik takrorlash"
+    lang: tr
+    levels: [A1, A2, B1]
+    hashtag: takrorlash
+    audio_line: "🎧 Javoblarni audioda tekshiring"
+    narrator: female
+    requirements: >
+      A weekly review quiz built ONLY from the items taught in this week's posts (given in the context).
+      8-10 quick questions (translate, fill the gap, choose the right option), answers hidden with spoilers.
+      Audio: the correct Turkish answers.
+  en_iboralar:
+    title: "English phrases"
+    lang: en
+    levels: [A2, B1, B2]
+    hashtag: english
+    audio_line: "🎧 Talaffuz audioda"
+    narrator: female
+    requirements: >
+      4-6 useful everyday English phrases or idioms with Uzbek meanings and usage notes; example sentences.
+      Audio: the English phrases and examples.
+  en_diolog:
+    title: "English dialogue"
+    lang: en
+    levels: [A2, B1, B2]
+    hashtag: english
+    audio_line: "🎧 Diolog audioda ikki ovozda"
+    narrator: dialogue
+    requirements: >
+      A realistic 6-10 line English dialogue (travel, work, study, shopping...) with two speakers, then
+      4-6 key phrases with Uzbek meanings. Audio: the dialogue lines only.
+  en_sozlar:
+    title: "English words"
+    lang: en
+    levels: [A2, B1, B2]
+    hashtag: english
+    audio_line: "🎧 Talaffuz audioda"
+    narrator: male
+    requirements: >
+      8-10 English words around one theme with Uzbek meanings and short examples, plus a memory tip or
+      mini-quiz. Audio: each word, then its example.
+
+# ---------------- Haftalik jadval ----------------
+weekly:
+  mon:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: kunlik_iboralar}
+    - {time: "20:00", type: mavzuli_lugat}
+  tue:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: en_iboralar}
+    - {time: "20:00", type: hayotiy_maslahat}
+  wed:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: haqiqiy_diolog}
+    - {time: "20:00", type: imtihon}
+  thu:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: en_diolog}
+    - {time: "20:00", type: mavzuli_lugat}
+  fri:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: kunlik_iboralar}
+    - {time: "20:00", type: hayotiy_maslahat}
+  sat:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: en_sozlar}
+    - {time: "20:00", type: imtihon}
+  sun:
+    - {time: "08:00", type: yangi_sozlar}
+    - {time: "13:00", type: haqiqiy_diolog}
+    - {time: "20:00", type: haftalik_takrorlash}

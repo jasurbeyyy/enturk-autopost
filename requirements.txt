@@ -1,0 +1,8 @@
+python-telegram-bot[job-queue]>=21.6,<23
+httpx>=0.27
+PyYAML>=6.0
+Pillow>=10.0
+pydub>=0.25
+audioop-lts>=0.2; python_version >= "3.13"
+python-dotenv>=1.0
+tzdata>=2024.1
