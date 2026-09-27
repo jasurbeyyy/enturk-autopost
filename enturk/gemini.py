@@ -41,9 +41,10 @@ def extract_json(text: str) -> Any:
 
 class GeminiClient:
     def __init__(self, api_key: str, text_model: str, image_model: str,
-                 timeout: float = 180.0):
+                 timeout: float = 180.0, text_fallbacks: list[str] | None = None):
         self.api_key = api_key
         self.text_model = text_model
+        self.text_models = [text_model] + [m for m in (text_fallbacks or []) if m != text_model]
         self.image_model = image_model
         self.http = httpx.AsyncClient(timeout=timeout)
         self._image_cfg_variant: int | None = None  # qaysi so'rov shakli ishlagani eslab qolinadi
@@ -107,16 +108,7 @@ class GeminiClient:
         elif json_mode:
             body["generationConfig"]["responseMimeType"] = "application/json"
 
-        try:
-            resp = await self._post(self.text_model, body)
-        except GeminiError as exc:
-            if not (search and exc.status == 429):
-                raise
-            log.warning("Google Search limiti tugagan — qidiruvsiz davom etiladi")
-            body.pop("tools", None)
-            if json_mode:
-                body["generationConfig"]["responseMimeType"] = "application/json"
-            resp = await self._post(self.text_model, body)
+        resp = await self._post_text(body, search=search, json_mode=json_mode)
         text = "".join(p.get("text", "") for p in self._parts(resp)
                        if not p.get("thought") and "text" in p)
         sources: list[str] = []
@@ -126,6 +118,29 @@ class GeminiClient:
             if web.get("uri"):
                 sources.append(f"{web.get('title', '')} | {web['uri']}")
         return text, sources
+
+    async def _post_text(self, body: dict, *, search: bool, json_mode: bool) -> dict:
+        """Asosiy model band / limit tugagan bo'lsa zaxira modellarga o'tadi.
+        Qidiruv limiti tugasa — qidiruvsiz davom etadi."""
+        last: GeminiError | None = None
+        for with_search in ([True, False] if search else [False]):
+            b = json.loads(json.dumps(body))
+            if not with_search:
+                b.pop("tools", None)
+                if json_mode:
+                    b["generationConfig"]["responseMimeType"] = "application/json"
+            for model in self.text_models:
+                try:
+                    return await self._post(model, b, attempts=3)
+                except GeminiError as exc:
+                    last = exc
+                    if exc.status in (429, 404, 500, 502, 503, 504, 0):
+                        log.warning("Model %s ishlamadi (%s), keyingisi sinaladi", model, exc.status)
+                        continue
+                    raise
+            if with_search:
+                log.warning("Qidiruv bilan hech bir model ishlamadi — qidiruvsiz davom etiladi")
+        raise last or GeminiError(0, "matn modeli ishlamadi")
 
     async def generate_json(self, system: str, prompt: str, **kw: Any) -> tuple[Any, list[str]]:
         last_err: Exception | None = None

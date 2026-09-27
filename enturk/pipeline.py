@@ -175,7 +175,8 @@ class Pipeline:
         image_task = illustrator.illustrate(
             self.gemini, cfg=s.cfg, root=ROOT, lang=lang,
             brief=draft.get("image_brief") or res.get("image_idea", ""),
-            topic=draft.get("topic") or res.get("topic", ""), label=label, sublabel=sublabel)
+            topic=draft.get("title") or draft.get("topic") or res.get("topic", ""), label=label,
+            sublabel=sublabel, items=draft.get("items"))
         if s.audio_enabled:
             audio_task = voice.synthesize(
                 self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,

@@ -51,7 +51,8 @@ def clients(s: Settings):
         return FakeGemini(), FakeEleven()
     from enturk.eleven import ElevenClient
     from enturk.gemini import GeminiClient
-    return (GeminiClient(s.gemini_key, s.cfg["models"]["text"], s.cfg["models"]["image"]),
+    return (GeminiClient(s.gemini_key, s.cfg["models"]["text"], s.cfg["models"]["image"],
+                         text_fallbacks=s.cfg["models"].get("text_fallbacks")),
             ElevenClient(s.eleven_key, s.cfg["elevenlabs"]["model_id"]))
 
 
@@ -115,20 +116,23 @@ async def check(s: Settings) -> None:
         # Gemini
         if s.gemini_key:
             from enturk.gemini import GeminiClient, GeminiError
-            g = GeminiClient(s.gemini_key, s.cfg["models"]["text"], s.cfg["models"]["image"])
+            g = GeminiClient(s.gemini_key, s.cfg["models"]["text"], s.cfg["models"]["image"],
+                         text_fallbacks=s.cfg["models"].get("text_fallbacks"))
             try:
-                txt, _ = await g.generate_text("Answer briefly.", "Say 'merhaba' in one word.", json_mode=False)
-                res(True, f"Gemini matn modeli ({s.cfg['models']['text']}): {txt.strip()[:30]}")
-                txt, src = await g.generate_text("Answer briefly.", "What is today's date? One line.",
-                                                 search=True, json_mode=False)
-                res(True, f"Gemini matn (qidiruv bilan yoki usiz): {txt.strip()[:60]}")
-            except GeminiError as exc:
-                res(False, f"Gemini matn: {str(exc)[:200]}")
-            try:
-                img = await g.generate_image("A small red tulip on a white background, flat vector, no text.")
-                res(True, f"Gemini rasm modeli ({s.cfg['models']['image']}): {len(img)//1024} KB rasm yaratildi")
-            except GeminiError as exc:
-                res(False, f"Gemini rasm modeli: {str(exc)[:200]}")
+                try:
+                    txt, _ = await g.generate_text("Answer briefly.", "Say 'merhaba' in one word.",
+                                                   json_mode=False)
+                    res(True, f"Gemini matn modeli: {txt.strip()[:30]}")
+                except GeminiError as exc:
+                    res(False, f"Gemini matn: {str(exc)[:200]}")
+                if s.cfg["models"].get("image_mode", "grafika") != "gemini":
+                    res(True, "Rasm: Gemini'siz grafika rejimi (kod chizadi)")
+                else:
+                    try:
+                        img = await g.generate_image("A small red tulip on a white background, no text.")
+                        res(True, f"Gemini rasm modeli: {len(img) // 1024} KB rasm yaratildi")
+                    except GeminiError as exc:
+                        res(False, f"Gemini rasm modeli: {str(exc)[:200]}")
             finally:
                 await g.aclose()
         else:

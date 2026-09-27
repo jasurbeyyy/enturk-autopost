@@ -424,7 +424,8 @@ def run(s: Settings) -> None:
         gemini, eleven = FakeGemini(), FakeEleven()
         log.warning("MOCK rejim: Gemini va ElevenLabs o'rniga soxta javoblar ishlatiladi")
     else:
-        gemini = GeminiClient(s.gemini_key, s.cfg["models"]["text"], s.cfg["models"]["image"])
+        gemini = GeminiClient(s.gemini_key, s.cfg["models"]["text"], s.cfg["models"]["image"],
+                         text_fallbacks=s.cfg["models"].get("text_fallbacks"))
         eleven = ElevenClient(s.eleven_key, s.cfg["elevenlabs"]["model_id"])
     coord = Coordinator(s, db, Pipeline(s, db, gemini, eleven))
     app = coord.build_app()

@@ -17,7 +17,14 @@ signature: "👉 @EnTurk_CSR"
 # ---------------- Modellar ----------------
 models:
   text: gemini-3.8-flash          # 1, 2, 5-agentlar (tadqiqot, yozuvchi, sifat nazorati)
-  image: gemini-3.1-flash-image   # 3-agent: Nano Banana 2
+  text_fallbacks:                 # asosiy model band bo'lsa yoki limiti tugasa
+    - gemini-3.7-flash
+    - gemini-3.6-flash
+    - gemini-3.5-flash
+    - gemini-3.5-flash-lite
+  # 3-agent: rasm. "grafika" — Gemini'siz, kod chizadi (bepul). "gemini" — Nano Banana illustratsiya (billing kerak)
+  image_mode: grafika
+  image: gemini-3.1-flash-image
   image_aspect: "4:5"
   image_size: "1K"
 
