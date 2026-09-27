@@ -27,6 +27,11 @@ WINDOW_AFTER = timedelta(minutes=60)
 TEST_LISTEN = timedelta(minutes=30)
 
 
+def _notice(msg: str) -> None:
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        print(f"::notice title=EnTurk::{msg.replace(chr(10), ' ')}", flush=True)
+
+
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -195,6 +200,7 @@ class SlotRunner:
             ctrl = await self.tg.send_message(self.admin, self.control_text(d, pub), keyboard(did, test))
             self.db.update(did, status="previewed", publish_at=pub, control_chat_id=ctrl["chat"]["id"],
                            control_msg_id=ctrl["message_id"])
+            _notice(f"Adminga ko'rsatildi: #{did} {post_type} | {r.level} | {r.style_id} | {r.topic}")
 
             # 3) tugmalarni kutish
             action = await self.listen(did, pub or utcnow() + TEST_LISTEN)
@@ -237,3 +243,4 @@ class SlotRunner:
         await self.tg.edit_text(ctrl["chat"]["id"], ctrl["message_id"], self.control_text(
             d, None, f"✅ <b>Kanalga chiqdi</b> — {utcnow().astimezone(self.s.tz):%H:%M}"))
         log.info("Kanalga chiqdi: #%s", did)
+        _notice(f"Kanalga chiqdi: #{did} {d['post_type']} — {d.get('topic')}")

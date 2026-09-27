@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import os
 import sys
 from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
@@ -27,6 +28,13 @@ def setup_logging(s: Settings) -> None:
     fh = RotatingFileHandler(s.data_dir / "bot.log", maxBytes=5_000_000, backupCount=3, encoding="utf-8")
     fh.setFormatter(fmt)
     root.handlers = [sh, fh]
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        class GHHandler(logging.Handler):
+            def emit(self, record: logging.LogRecord) -> None:
+                level = "error" if record.levelno >= logging.ERROR else "warning"
+                gh_annotate(level, f"{record.name}: {record.getMessage()}"[:900])
+        gh = GHHandler(level=logging.WARNING)
+        root.addHandler(gh)
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
@@ -68,13 +76,24 @@ async def dry_run(s: Settings, type_key: str) -> None:
     print(r.caption_html)
 
 
+def gh_annotate(level: str, msg: str) -> None:
+    """GitHub Actions'da natijani izoh (annotation) sifatida ko'rsatish."""
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        clean = msg.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+        print(f"::{level} title=EnTurk::{clean}", flush=True)
+
+
 async def check(s: Settings) -> None:
     ok = True
+    lines: list[str] = []
 
     def res(good: bool, msg: str) -> None:
         nonlocal ok
         ok &= good
-        print(("✅ " if good else "❌ ") + msg)
+        line = ("✅ " if good else "❌ ") + msg
+        print(line)
+        lines.append(line)
+        gh_annotate("notice" if good else "error", line)
 
     async with httpx.AsyncClient(timeout=30) as http:
         # Telegram
@@ -132,8 +151,27 @@ async def check(s: Settings) -> None:
             finally:
                 await e.aclose()
         else:
-            print("⚪ ElevenLabs kaliti yo'q — postlar audiosiz chiqadi (keyin qo'shish mumkin)")
-    print("\nHammasi tayyor! 🎉" if ok else "\nYuqoridagi ❌ bandlarni tuzating.")
+            msg = "⚪ ElevenLabs kaliti yo'q — postlar audiosiz chiqadi (keyin qo'shish mumkin)"
+            print(msg)
+            lines.append(msg)
+            gh_annotate("notice", msg)
+    final = "Hammasi tayyor! 🎉" if ok else "Yuqoridagi ❌ bandlarni tuzating."
+    print("\n" + final)
+    gh_annotate("notice" if ok else "error", final)
+    # natijani adminga Telegram'da ham yuborish
+    if s.bot_token and s.admin_ids:
+        import html as _html
+        from enturk.telegram_api import TelegramAPI, TelegramError
+        tg = TelegramAPI(s.bot_token)
+        try:
+            await tg.send_message(s.admin_ids[0], "🔎 <b>Tekshiruv natijasi</b>\n\n"
+                                  + _html.escape("\n".join(lines)) + "\n\n" + final)
+        except TelegramError as exc:
+            gh_annotate("error", f"Adminga xabar yuborilmadi: {exc} (botga /start yozganmisiz?)")
+        finally:
+            await tg.aclose()
+    if not ok:
+        raise SystemExit(1)
 
 
 async def run_slot(s: Settings, test_type: str | None) -> None:
