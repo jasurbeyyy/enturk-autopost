@@ -64,7 +64,8 @@ class FakeGemini:
             return {"title": "Oshxonada", "topic": "Oshxona buyumlari",
                     "caption_html": SAMPLE_BODY.format(level=level), "audio": audio,
                     "audio_title": "Oshxonada — 10 ta yangi so'z", "items": [w for w, _ in WORDS],
-                    "image_brief": "a bright Turkish kitchen with a copper pot, pan and tea glasses"}, []
+                    "image_brief": "a bright Turkish kitchen with a copper pot, pan and tea glasses",
+                    "visual": {"emojis": ["🍳", "🥘", "🔪", "🧊"], "scene": "tea"}}, []
         if "QUALITY CONTROL" in system:
             self.calls.append("qa")
             return {"verdict": "pass", "issues": [], "caption_html": None, "audio": None, "score": 9}, []

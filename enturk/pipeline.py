@@ -75,7 +75,20 @@ class Pipeline:
             "recent_items": recent_items,
             "recent_items_norm": {cap.norm_item(i) for i in recent_items},
             "week_items": week_items[:120],
+            **self._recent_visuals(),
         }
+
+    def _recent_visuals(self) -> dict:
+        """Kanaldagi oxirgi postlarning maketi va sahnasi (ketma-ket takrorlamaslik uchun)."""
+        layouts, scenes = [], []
+        for r in self.db.recent(days=14):
+            try:
+                q = json.loads(r.get("qa_json") or "{}")
+            except json.JSONDecodeError:
+                q = {}
+            layouts.append(q.get("layout"))
+            scenes.append(q.get("scene"))
+        return {"recent_layouts": layouts, "recent_scenes": scenes}
 
     # ---------- asosiy ----------
     async def run(self, type_key: str, *, now: datetime, avoid_topics: list[str] | None = None,
@@ -176,17 +189,20 @@ class Pipeline:
             self.gemini, cfg=s.cfg, root=ROOT, lang=lang,
             brief=draft.get("image_brief") or res.get("image_idea", ""),
             topic=draft.get("title") or draft.get("topic") or res.get("topic", ""), label=label,
-            sublabel=sublabel, items=draft.get("items"))
+            sublabel=sublabel, items=draft.get("items"), post_type=type_key, style_id=style["id"],
+            visual=draft.get("visual"), lines=draft.get("audio"),
+            recent_layouts=ctx["recent_layouts"], recent_scenes=ctx["recent_scenes"])
         if s.audio_enabled:
             audio_task = voice.synthesize(
                 self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,
                 pause_ms=int(s.cfg["elevenlabs"].get("pause_ms", 650)))
-            image, audio = await asyncio.gather(image_task, audio_task)
+            (image, visual_meta), audio = await asyncio.gather(image_task, audio_task)
         else:
-            image, audio = await image_task, b""
+            (image, visual_meta), audio = await image_task, b""
 
         qa_meta = {"verdict": qa_result.get("verdict"), "score": qa_result.get("score"),
-                   "issues": qa_result.get("issues", []), "exam": exam}
+                   "issues": qa_result.get("issues", []), "exam": exam,
+                   "layout": visual_meta.get("layout"), "scene": visual_meta.get("scene")}
         return PostResult(
             post_type=type_key, lang=lang, level=level, style_id=style["id"],
             topic=str(draft.get("topic") or res.get("topic")), title=str(draft.get("title", "")),

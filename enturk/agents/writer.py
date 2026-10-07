@@ -41,7 +41,9 @@ OUTPUT: exactly one JSON object:
   "audio": [{{"speaker": "female", "text": "..."}}],
   "audio_title": "short title for the audio file in Uzbek",
   "items": ["every taught target-language word / phrase exactly as written in the post"],
-  "image_brief": "one concrete English description of an illustration scene for this post (people, objects, setting). No text in the image."}}"""
+  "image_brief": "one concrete English description of an illustration scene for this post (people, objects, setting). No text in the image.",
+  "visual": {{"emojis": ["3-5 single emoji that clearly depict the CONCRETE objects, places or actions of THIS topic, most typical first (barber → 💈 ✂️ 💇; bank → 🏦 💳 💸; courier → 📦 🚚 🚪). Avoid generic ones like 📚 ✏️ unless the topic is about studying."],
+             "scene": "background scene that fits the topic best — Turkish posts: skyline (Istanbul mosques, general city life), bosphorus (sea, travel, transport, bridge), balloons (Cappadocia, holidays, nature, adventure), tulips (spring, flowers, feelings, family, health), tea (food, café, home, shopping, guests); English posts: london"}}}}"""
 
 TEMPLATE = """Write the next post.
 
@@ -124,4 +126,8 @@ def _normalize(data: dict) -> dict:
     data.setdefault("title", data.get("topic", ""))
     data.setdefault("audio_title", data.get("title", ""))
     data.setdefault("image_brief", "")
+    vis = data.get("visual") if isinstance(data.get("visual"), dict) else {}
+    emojis = vis.get("emojis") if isinstance(vis.get("emojis"), list) else []
+    data["visual"] = {"emojis": [str(e).strip() for e in emojis if str(e).strip()][:6],
+                      "scene": str(vis.get("scene") or "").strip().lower()}
     return data
