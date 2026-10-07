@@ -12,7 +12,7 @@ GitHub har bir post vaqtidan taxminan 50 daqiqa oldin tizimni ishga tushiradi:
 | 1 | Tadqiqotchi | Rubrika bo'yicha Google Search orqali yangi, dolzarb mavzu topadi (Gemini) |
 | 2 | Yozuvchi | Uslublar bankidan navbatdagi uslubni tanlab, postni yozadi |
 | 5 | Sifat nazorati | Turkcha grammatika, tarjima, faktlar, uzunlik va takrorlanmaslikni tekshiradi. Xato bo'lsa, post qayta yoziladi |
-| 3 | Rassom | Nano Banana 2 bilan Turkiya motivli rasm chizadi. Pastiga qizil tasma, logo va rubrika nomini qo'yadi |
+| 3 | Rassom | Har bir postga mavzusiga mos grafika chizadi (Gemini'siz, bepul): 8 xil maket (kartochka, katta emoji, chat, test, poster, stikerlar, daftar, Iznik koshinlari), 6 xil sahna (Istanbul, Bosfor, Kappadokiya, lolalar, choy-simit, London) va mavzuli emojilar. Ketma-ket postlarda maket va sahna takrorlanmaydi. Pastda qizil tasma va logo |
 | 4 | Diktor | ElevenLabs orqali misollarni o'qiydi. Diologlarda ikki ovoz ishlatiladi |
 | 6 | Admin bot | Post vaqtidan **10 daqiqa oldin** postni sizga yuboradi. Unda **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bor. Hech narsa bosmasangiz, post o'z vaqtida chiqadi |
 
