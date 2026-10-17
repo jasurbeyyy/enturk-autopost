@@ -74,6 +74,11 @@ async def dry_run(s: Settings, type_key: str) -> None:
         (out / f"{stem}.jpg").write_bytes(qs.image)
         print(qs.intro_caption + "\n\n" + "\n\n".join(preview_chunks(qs)))
         print(f"\n✅ Tayyor: out/{stem}.jpg")
+        gh_annotate("notice", f"Testlar tayyor: {qs.level}, rad etilgan: {qs.qa.get('rejected')}\n"
+                    + "\n".join(qs.qa.get("reasons", []))[:3500])
+        gh_annotate("notice", "\n".join(
+            f"{i}. {q['question']} → {q['options'][q['correct_index']]} | {q['explanation']}"
+            for i, q in enumerate(qs.questions, 1))[:3900])
         return
     try:
         r = await Pipeline(s, db, gemini, eleven).run(type_key, now=datetime.now(timezone.utc))

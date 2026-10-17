@@ -33,8 +33,8 @@ Q_LIMIT = 300
 OPT_LIMIT = 100
 EXPL_LIMIT = 200
 N_OPTIONS = 4
-EXTRA = 2          # har bir turdan nechta zaxira savol so'raladi
-MAX_ROUNDS = 3
+EXTRA = 3          # har bir turdan nechta zaxira savol so'raladi
+MAX_ROUNDS = 4
 
 CYRILLIC = re.compile(r"[Ѐ-ӿ]")
 
@@ -58,7 +58,8 @@ Uzbek word/phrase → Turkish, the right word for a gap in a context sentence, s
 useful everyday words of this level, several themes.
 
 WRITING RULES
-- "question": the instruction in Uzbek (Latin script) + the Turkish part. Example:
+- "question": the instruction in Uzbek (Latin script), then a line break, then the Turkish part
+  (sentence, word or phrase) on its own line. Example:
   "Bo'sh joyni to'ldiring:\\nDün akşam arkadaşlarım___ sinemaya gittik." Max 220 characters, plain text,
   no HTML, no numbering, no level tag, no emojis. Use "\\n" between the instruction and the Turkish sentence.
 - "options": exactly 4 different options, each max 60 characters, all plausible and of the same kind
@@ -85,25 +86,57 @@ Already used questions (do NOT repeat or paraphrase them):
 {used}
 Recently tested words / grammar points (prefer different ones): {keys}"""
 
-CHECKER_SYSTEM = """You are the QUIZ CHECKER agent: a meticulous native-level Turkish teacher and an Uzbek (Latin script)
-proofreader. You review multiple-choice quiz questions for Uzbek learners of Turkish (CEFR {level}) before they
-are posted on Telegram.
+EDITOR_SYSTEM = """You are the UZBEK EDITOR agent: a professional Uzbek (Latin script) proofreader who also knows
+Turkish grammar terminology. You polish ONLY the Uzbek parts of quiz questions for Uzbek learners of Turkish.
+
+Fix in the Uzbek instruction and explanation:
+- spelling in the official Latin alphabet: o', g' and the tutuq belgisi written with the apostrophe ' (so'z, ma'no,
+  qo'shimcha), sh, ch, ng; never Cyrillic;
+- grammar, suffix agreement and natural modern phrasing (as a good Uzbek textbook would write it);
+- precise word choice: e.g. a wish is "tilak", not "xushomad"; stale bread is "qotgan", not "eski"; use standard
+  grammar terms: bosh, qaratqich, tushum, jo'nalish, o'rin-payt, chiqish kelishigi; egalik qo'shimchasi;
+  hozirgi zamon, o'tgan zamon, kelasi zamon, keng zamon (geniş zaman); fe'l, ot, sifat, ravish, ko'makchi;
+  unli / undosh, jarangli / jarangsiz undosh; ma'nodosh (sinonim), zid ma'noli (antonim);
+- the explanation must say correctly WHY the right answer is right; remove filler.
+Rules: keep EVERY Turkish word, sentence and suffix exactly as it is. Do not change the meaning or the answer.
+Keep the instruction short. Explanation max 170 characters, max one line break.
+
+Output exactly one JSON object: {"items": [{"i": 0, "question": "...", "explanation": "..."}]}
+Return every item, edited or not."""
+
+CHECKER_SYSTEM = """You are the QUIZ CHECKER agent: a strict native-level Turkish teacher (Türkçe öğretmeni) and an
+Uzbek (Latin script) editor. Questions go to a public channel WITHOUT human review, so you are the last line of
+defence. Reject anything you are not sure about.
 
 For EVERY question check:
-1. Exactly ONE option is correct, and it is the one marked "correct". No other option is also acceptable.
-2. Turkish is 100% correct (spelling, ı/i, ş, ç, ğ, ö, ü, vowel harmony, natural modern usage).
-3. Uzbek instruction and explanation are correct, natural, Latin script (o', g', sh, ch), and the explanation is
-   factually right.
-4. The question fits level {level} and is clear without extra context.
-5. Limits: question max 220 chars, each option max 60 chars, explanation max 170 chars.
+1. KEY: the option marked "correct" is right, and NO other option is also acceptable in standard modern Turkish
+   (think about each distractor separately: could a native speaker say it? is it also grammatical? also a valid
+   synonym/antonym/translation?). Any doubt → not ok.
+2. TURKISH: 100% correct spelling (ı/i, İ, ş, ç, ğ, ö, ü, â), vowel harmony, consonant mutation, buffer letters,
+   apostrophes with proper names, natural modern usage. The full sentence with the correct answer inserted must be
+   natural and error-free. Distractors must be real-looking forms, but clearly wrong.
+3. UZBEK: correct Latin spelling (o', g', apostrophe), correct grammar and PRECISE word choice and terminology;
+   no Cyrillic; no awkward machine-like phrasing.
+4. EXPLANATION: factually correct, matches the correct answer, explains the rule or meaning, no false statements
+   about Turkish grammar.
+5. CLARITY & LEVEL: understandable without extra context, fits CEFR {level}, exactly one gap if it is a gap-fill.
+6. Limits: question max 220 chars, each option max 60 chars, explanation max 170 chars.
 
-For each question return one result:
-- "ok": true if publishable as is;
-- otherwise "ok": false, a short "problem", and — if you can fix it confidently — "fixed": the COMPLETE corrected
-  question object (question, options, correct, explanation). If not fixable, "fixed": null.
+For each question return: "ok" (true only if everything is right), "score" 1-10 (10 = flawless), "problem"
+(short), and — only if you can fix it with full confidence — "fixed": the COMPLETE corrected question object
+(question, options, correct, explanation); otherwise "fixed": null.
 
 Output exactly one JSON object:
-{{"results": [{{"i": 0, "ok": true, "problem": "", "fixed": null}}]}}"""
+{{"results": [{{"i": 0, "ok": true, "score": 10, "problem": "", "fixed": null}}]}}"""
+
+SOLVER_SYSTEM = """You are the QUIZ SOLVER agent: an expert in Turkish (native level) taking a test. You do not know
+the intended answers. For each question pick the single correct option and copy its text exactly.
+If two or more options are acceptable, or none is, or the question is unclear, set "ambiguous": true.
+
+Output exactly one JSON object:
+{"answers": [{"i": 0, "choice": "exact option text", "ambiguous": false, "reason": ""}]}"""
+
+MIN_SCORE = 9
 
 OPENERS = [
     "Bilimingizni sinab ko'ring! Hozir pastda 10 ta test chiqadi 👇",
@@ -153,6 +186,11 @@ def norm_q(text: str) -> str:
     return re.sub(r"[\s_]+", " ", t).strip()
 
 
+def fix_apostrophes(t: str) -> str:
+    """O'zbekcha o', g' va tutuq belgisi uchun bitta standart belgi."""
+    return re.sub(r"(?<=[A-Za-z])[ʻʼ’‘`´](?=[A-Za-z]|\b)", "'", t)
+
+
 def clean_question(raw: dict, kind: str | None = None) -> dict | None:
     """Model javobini standart ko'rinishga keltiradi. Yaroqsiz bo'lsa None."""
     if not isinstance(raw, dict):
@@ -172,6 +210,8 @@ def clean_question(raw: dict, kind: str | None = None) -> dict | None:
         corr = opts[raw["correct_index"]]
     expl = str(raw.get("explanation") or "").replace("\\n", "\n").strip()
     expl = re.sub(r"<[^>]+>", "", expl)
+    q, expl = fix_apostrophes(q), fix_apostrophes(expl)
+    q = re.sub(r"_{2,}", "___", q)
     return {"kind": k, "question": q, "options": opts, "correct": corr, "explanation": expl,
             "key": str(raw.get("key") or "").strip()[:60]}
 
@@ -196,6 +236,11 @@ def problems(q: dict, prefix_len: int) -> list[str]:
         out.append("izoh bo'sh yoki juda uzun")
     if CYRILLIC.search(q["question"] + q["explanation"] + "".join(q["options"])):
         out.append("kirill harflari bor")
+    if "bo'sh joy" in q["question"].lower() and q["question"].count("___") != 1:
+        out.append("bo'sh joy (___) bitta bo'lishi kerak")
+    if any(cap.norm_item(o) in cap.norm_item(q["question"]).split() for o in q["options"]
+           if len(o) > 3 and q["kind"] == VOCAB and "___" in q["question"]):
+        out.append("javob savol ichida ko'rinib turibdi")
     return out
 
 
@@ -278,32 +323,8 @@ async def make_quiz_set(s: Settings, db: DB, gemini: GeminiClient, *, now: datet
             log.warning("Raund %s: yaroqli savol chiqmadi", rnd + 1)
             continue
 
-        # 5-agent: har bir savolni tekshirish
-        payload = [{"i": i, **{k: q[k] for k in ("kind", "question", "options", "correct", "explanation")}}
-                   for i, q in enumerate(cands)]
-        try:
-            rev, _ = await gemini.generate_json(
-                CHECKER_SYSTEM.format(level=level),
-                "Questions to review:\n" + json.dumps(payload, ensure_ascii=False, indent=1),
-                temperature=0.1)
-            results = {int(r.get("i", -1)): r for r in rev.get("results") or [] if isinstance(r, dict)}
-        except Exception as exc:  # noqa: BLE001
-            log.warning("Test tekshiruvi ishlamadi: %s", exc)
-            results = {}
-        for i, q in enumerate(cands):
-            r = results.get(i)
-            if r is None:
-                rejected.append(f"{q['question'][:40]}…: tekshirilmadi")
-                continue
-            if not r.get("ok"):
-                fixed = clean_question(r.get("fixed"), q["kind"]) if r.get("fixed") else None
-                if fixed and not problems(fixed, PREFIX_LEN):
-                    fixed["key"] = fixed["key"] or q["key"]
-                    q = fixed
-                else:
-                    rejected.append(f"{q['question'][:40]}…: {r.get('problem') or 'rad etildi'}")
-                    continue
-            if len(chosen[q["kind"]]) < n[q["kind"]]:
+        for q in await review_questions(gemini, level, cands, rng, rejected):
+            if len(chosen[q["kind"]]) < n[q["kind"]] and norm_q(q["question"]) not in used_norm:
                 chosen[q["kind"]].append(q)
         log.info("Raund %s: grammatika %s/%s, kelime %s/%s", rnd + 1, len(chosen[GRAMMAR]), n[GRAMMAR],
                  len(chosen[VOCAB]), n[VOCAB])
@@ -313,11 +334,109 @@ async def make_quiz_set(s: Settings, db: DB, gemini: GeminiClient, *, now: datet
 
     questions = [finalize(q, rng) for q in chosen[GRAMMAR] + chosen[VOCAB]]
     qs = QuizSet(level=level, grammar_focus=focus, vocab_theme=theme, questions=questions,
-                 qa={"rejected": len(rejected)})
+                 qa={"rejected": len(rejected), "reasons": rejected[-20:]})
     qs.intro_caption = intro_caption(s, qs, rng)
     if with_image:
         qs.image = intro_image(s, qs, rng)
     return qs
+
+
+async def review_questions(gemini: GeminiClient, level: str, cands: list[dict], rng: random.Random,
+                           rejected: list[str]) -> list[dict]:
+    """3 bosqich: o'zbekcha muharrir → qattiq tekshiruvchi (tuzatishi mumkin) → mustaqil yechuvchi.
+    Qaysidir bosqich ishlamasa yoki shubha bo'lsa — savol tashlanadi."""
+    def short(q: dict) -> str:
+        return q["question"].replace("\n", " ")[:45] + "…"
+
+    # A) o'zbekcha matnni tahrirlash (turkcha qismlar o'zgarmasligi kod bilan tekshiriladi)
+    try:
+        ed, _ = await gemini.generate_json(
+            EDITOR_SYSTEM, "Items:\n" + json.dumps(
+                [{"i": i, "question": q["question"], "explanation": q["explanation"], "correct_answer": q["correct"]}
+                 for i, q in enumerate(cands)], ensure_ascii=False, indent=1), temperature=0.2)
+        edits = {int(x.get("i", -1)): x for x in ed.get("items") or [] if isinstance(x, dict)}
+    except Exception as exc:  # noqa: BLE001
+        log.warning("O'zbekcha tahrir ishlamadi: %s", exc)
+        edits = {}
+    for i, q in enumerate(cands):
+        e = edits.get(i)
+        if not e:
+            continue
+        new = dict(q)
+        nq = str(e.get("question") or "").replace("\\n", "\n").strip()
+        old_tr = turkish_part(q["question"])
+        if nq and old_tr is not None and turkish_part(nq) == old_tr:
+            new["question"] = nq
+        ne = str(e.get("explanation") or "").replace("\\n", "\n").strip()
+        if ne:
+            new["explanation"] = ne
+        if not problems(new, PREFIX_LEN):
+            cands[i] = new
+
+    # B) qattiq tekshiruv
+    payload = [{"i": i, **{k: q[k] for k in ("kind", "question", "options", "correct", "explanation")}}
+               for i, q in enumerate(cands)]
+    try:
+        rev, _ = await gemini.generate_json(
+            CHECKER_SYSTEM.format(level=level),
+            "Questions to review:\n" + json.dumps(payload, ensure_ascii=False, indent=1), temperature=0.1)
+        results = {int(r.get("i", -1)): r for r in rev.get("results") or [] if isinstance(r, dict)}
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Test tekshiruvi ishlamadi: %s", exc)
+        rejected += [f"{short(q)}: tekshirilmadi" for q in cands]
+        return []
+    checked: list[dict] = []
+    for i, q in enumerate(cands):
+        r = results.get(i)
+        if r is None:
+            rejected.append(f"{short(q)}: tekshirilmadi")
+            continue
+        try:
+            score = int(r.get("score") or 0)
+        except (TypeError, ValueError):
+            score = 0
+        if r.get("ok") and score >= MIN_SCORE:
+            checked.append(q)
+            continue
+        fixed = clean_question(r.get("fixed"), q["kind"]) if r.get("fixed") else None
+        if fixed and not problems(fixed, PREFIX_LEN):
+            fixed["key"] = fixed["key"] or q["key"]
+            checked.append(fixed)       # tuzatilgan savol ham yechuvchidan o'tishi shart
+        else:
+            rejected.append(f"{short(q)}: {r.get('problem') or f'baho {score}/10'}")
+    if not checked:
+        return []
+
+    # C) mustaqil yechuvchi: javobni bilmagan holda yechadi, mos kelmasa — tashlanadi
+    shuffled = [list(rng.sample(q["options"], len(q["options"]))) for q in checked]
+    try:
+        sol, _ = await gemini.generate_json(
+            SOLVER_SYSTEM, "Questions:\n" + json.dumps(
+                [{"i": i, "question": q["question"], "options": shuffled[i]} for i, q in enumerate(checked)],
+                ensure_ascii=False, indent=1), temperature=0.0)
+        answers = {int(a.get("i", -1)): a for a in sol.get("answers") or [] if isinstance(a, dict)}
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Yechuvchi ishlamadi: %s", exc)
+        rejected += [f"{short(q)}: yechuvchi tekshirmadi" for q in checked]
+        return []
+    out = []
+    for i, q in enumerate(checked):
+        a = answers.get(i) or {}
+        if a.get("ambiguous"):
+            rejected.append(f"{short(q)}: noaniq ({a.get('reason') or 'bir nechta javob'})")
+        elif cap.norm_item(str(a.get("choice") or "")) != cap.norm_item(q["correct"]):
+            rejected.append(f"{short(q)}: yechuvchi boshqa javob tanladi ({a.get('choice')})")
+        else:
+            out.append(q)
+    log.info("Tekshiruv: %s/%s savol o'tdi", len(out), len(cands))
+    return out
+
+
+def turkish_part(question: str) -> str | None:
+    """Savolning turkcha qismi (ko'rsatmadan keyingi qatorlar) — o'zbekcha tahrirda o'zgarmasligi shart.
+    Bir qatorli savolda ajratib bo'lmaydi → None (savol matni tahrirlanmaydi, faqat izoh)."""
+    parts = question.split("\n", 1)
+    return parts[1].strip() if len(parts) == 2 else None
 
 
 # ------------------------------------------------------------------ kirish posti

@@ -58,10 +58,11 @@ class QuizRunner(SlotRunner):
                  f"{len(qs.questions)} ta savol",
                  f"📘 {html.escape(qs.grammar_focus or 'grammatika')}",
                  f"📗 {html.escape(qs.vocab_theme or 'kelime bilgisi')}",
-                 "🧐 Sifat nazorati: ✅ har bir savol tekshirildi"]
+                 "🧐 Sifat nazorati: ✅ har bir savol 4 bosqichdan o'tdi "
+                 "(kod, muharrir, tekshiruvchi, mustaqil yechuvchi)"]
         if pub and not d["is_test"]:
             lines += ["", f"⏰ Kanalga chiqish: <b>{pub.astimezone(self.s.tz):%H:%M}</b>",
-                      "Hech narsa bosmasangiz, testlar shu vaqtda o'zi chiqadi."]
+                      "Ko'rib chiqish shart emas: hech narsa bosmasangiz, testlar shu vaqtda o'zi chiqadi."]
         elif d["is_test"]:
             lines += ["", "Tugmalar 30 daqiqa ishlaydi."]
         if note:

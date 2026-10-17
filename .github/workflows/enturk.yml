@@ -15,7 +15,7 @@ on:
         description: "Nima qilamiz?"
         type: choice
         default: sinov_posti
-        options: [sinov_posti, sinov_testi, navbatdagi_post, tekshirish, ovozlar]
+        options: [sinov_posti, sinov_testi, test_tahlili, navbatdagi_post, tekshirish, ovozlar]
       tur:
         description: "Sinov posti turi"
         type: choice
@@ -68,6 +68,10 @@ jobs:
       - name: Sinov testlari
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'sinov_testi'
         run: python main.py --test-quiz
+
+      - name: Test tahlili (Telegram'ga yubormaydi)
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'test_tahlili'
+        run: python main.py --dry-run kunlik_test
 
       - name: Tekshirish
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'tekshirish'

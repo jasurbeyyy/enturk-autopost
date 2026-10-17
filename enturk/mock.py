@@ -68,13 +68,28 @@ class FakeGemini:
                            "options": [w, "masa", "kapı", "pencere"] if w not in ("masa", "kapı", "pencere")
                            else [w, "ev", "yol", "su"], "correct": w,
                            "explanation": f"{w} — {uz}.", "key": w})
+            self.answers = getattr(self, "answers", {})
+            self.answers.update({q["question"]: q["correct"] for q in qs})
             return {"grammar_focus": "-e hali (yo'nalish)", "vocab_theme": "oshxona buyumlari",
                     "questions": qs}, []
+        if "UZBEK EDITOR" in system:
+            self.calls.append("quiz_editor")
+            import json as _json
+            items = _json.loads(prompt.split("\n", 1)[1])
+            return {"items": [{"i": it["i"], "question": it["question"], "explanation": it["explanation"]}
+                              for it in items]}, []
+        if "QUIZ SOLVER" in system:
+            self.calls.append("quiz_solver")
+            import json as _json
+            items = _json.loads(prompt.split("\n", 1)[1])
+            return {"answers": [{"i": it["i"], "choice": self.answers.get(it["question"], it["options"][0]),
+                                 "ambiguous": False} for it in items]}, []
         if "QUIZ CHECKER" in system:
             self.calls.append("quiz_checker")
             import json as _json
             items = _json.loads(prompt.split("\n", 1)[1])
-            return {"results": [{"i": it["i"], "ok": True, "problem": "", "fixed": None} for it in items]}, []
+            return {"results": [{"i": it["i"], "ok": True, "score": 10, "problem": "", "fixed": None}
+                                for it in items]}, []
         if "RESEARCH agent" in system:
             self.calls.append("research")
             return {"topic": "Oshxona buyumlari", "angle": "kundalik hayot",

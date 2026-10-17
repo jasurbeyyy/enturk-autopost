@@ -180,3 +180,50 @@ def test_disabled_and_paused(env, monkeypatch):
     monkeypatch.setenv("PAUSED", "1")
     tg = PollTG(clock)
     assert asyncio.run(_runner(s, db, tg).run()) is False and tg.sent == []
+
+
+# ------------------------------------------------------------------ kuchaytirilgan tekshiruv
+def test_solver_disagreement_rejects_question(env):
+    s, db, clock = env
+
+    class WrongSolver(FakeGemini):
+        async def generate_json(self, system, prompt, **kw):
+            data, src = await super().generate_json(system, prompt, **kw)
+            if "QUIZ SOLVER" in system and self.calls.count("quiz_solver") == 1:
+                data["answers"][0]["choice"] = "-dan"          # boshqa javob
+                data["answers"][1]["ambiguous"] = True         # ikki javob ham to'g'ri
+            return data, src
+
+    g = WrongSolver()
+    qs = asyncio.run(quiz.make_quiz_set(s, db, g, now=clock.now()))
+    assert len(qs.questions) == 10
+    assert qs.qa["rejected"] >= 2
+
+
+def test_low_score_rejected_and_editor_cannot_touch_turkish(env):
+    s, db, clock = env
+
+    class Picky(FakeGemini):
+        async def generate_json(self, system, prompt, **kw):
+            data, src = await super().generate_json(system, prompt, **kw)
+            if "QUIZ CHECKER" in system:
+                data["results"][0]["score"] = 7
+            if "UZBEK EDITOR" in system:
+                for it in data["items"]:
+                    if "\n" in it["question"]:
+                        it["question"] = it["question"].replace("okul___", "ev___")   # turkchani buzadi
+                    it["explanation"] = "Tahrirlangan izoh: yo'nalish kelishigi."
+            return data, src
+
+    qs = asyncio.run(quiz.make_quiz_set(s, db, Picky(), now=clock.now()))
+    assert all("okul___" in q["question"] for q in qs.questions if q["kind"] == "grammar")
+    assert all(q["explanation"].startswith("Tahrirlangan") for q in qs.questions)
+    assert qs.qa["rejected"] >= 1
+
+
+def test_apostrophes_and_gap_checks():
+    q = quiz.clean_question({"kind": "grammar", "question": "Bo‘sh joyni to‘ldiring:\nEv____ gidiyorum.",
+                             "options": ["-e", "-a", "-de", "-den"], "correct": "-e", "explanation": "ma’no"})
+    assert "Bo'sh joyni to'ldiring" in q["question"] and "Ev___ " in q["question"] and q["explanation"] == "ma'no"
+    two_gaps = dict(q, question="Bo'sh joyni to'ldiring:\nEv___ ___ gidiyorum.")
+    assert any("bo'sh joy" in p for p in quiz.problems(two_gaps, quiz.PREFIX_LEN))
