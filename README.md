@@ -64,10 +64,15 @@ Shundan keyin tizim jadval bo'yicha o'zi ishlaydi.
 Har kuni **17:00** da kanalga avval **"Kunlik test"** posti (rasm bilan) chiqadi, ketidan **10 ta quiz**: 5 ta grammatika va 5 ta kelime bilgisi. Ular QuizBot'dagi kabi ishlaydi: 4 ta variant, bitta to'g'ri javob, xato tanlansa 💡 izoh ko'rinadi.
 
 - Har kuni navbatdagi daraja olinadi: A1 → A2 → B1 → B2.
-- Har bir savolni sifat nazorati alohida tekshiradi: bitta to'g'ri javob, turkcha va o'zbekcha xatosiz, daraja mos. Yaroqsiz savol tashlanadi va o'rniga yangisi yoziladi.
+- Har bir savol 4 bosqichdan o'tadi:
+  1. **Kod tekshiruvi:** 4 ta variant, bitta to'g'ri javob, uzunlik, kirill harfi yo'qligi va takrorlanmaslik.
+  2. **O'zbekcha muharrir:** imlo, atamalar va so'z tanlovini tuzatadi. Turkcha qismga tegmaydi, buni kod tekshiradi.
+  3. **Qattiq tekshiruvchi:** 9/10 dan past baholangan savol tashlanadi.
+  4. **Mustaqil yechuvchi:** javobni bilmagan holda testni yechadi. Javobi mos kelmasa yoki ikkita javob to'g'ri bo'lsa, savol tashlanadi.
+  - Tashlangan savollar o'rniga yangilari yoziladi.
 - To'g'ri javob o'rni aralashtiriladi, avvalgi testlar takrorlanmaydi.
-- **10 daqiqa oldin** savol-javoblar sizga keladi, **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bilan. Hech narsa bosmasangiz, o'z vaqtida chiqadi.
-- **Sinash:** Actions → EnTurk avtopost → Run workflow → `rejim: sinov_testi`. Testlar faqat sizga keladi.
+- **10 daqiqa oldin** savol-javoblar sizga keladi, **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bilan. Ko'rib chiqish shart emas: hech narsa bosmasangiz, o'z vaqtida chiqadi.
+- **Sinash:** Actions → EnTurk avtopost → Run workflow → `rejim: sinov_testi`. Testlar faqat sizga keladi. `rejim: test_tahlili` esa Telegram'ga hech narsa yubormaydi, faqat savollarni jurnalda ko'rsatadi.
 - **Sozlash:** `config.yaml` → `quiz` bo'limi (vaqt, kunlar, savollar soni, darajalar). O'chirish uchun `enabled: false`. Vaqtni o'zgartirsangiz, `.github/workflows/enturk.yml`dagi `7 11 * * *` cron qatorini ham moslang.
 
 ## Boshqarish
