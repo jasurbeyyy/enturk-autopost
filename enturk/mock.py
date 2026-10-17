@@ -82,7 +82,8 @@ class FakeGemini:
             self.calls.append("quiz_solver")
             import json as _json
             items = _json.loads(prompt.split("\n", 1)[1])
-            return {"answers": [{"i": it["i"], "choice": self.answers.get(it["question"], it["options"][0]),
+            return {"answers": [{"i": it["i"], "choice": next((a for q, a in self.answers.items() if q in it["question"]),
+                                                       it["options"][0]),
                                  "ambiguous": False} for it in items]}, []
         if "QUIZ CHECKER" in system:
             self.calls.append("quiz_checker")

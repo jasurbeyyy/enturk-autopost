@@ -60,14 +60,20 @@ useful everyday words of this level, several themes.
 WRITING RULES
 - "question": the instruction in Uzbek (Latin script), then a line break, then the Turkish part
   (sentence, word or phrase) on its own line. Example:
-  "Bo'sh joyni to'ldiring:\\nDün akşam arkadaşlarım___ sinemaya gittik." Max 220 characters, plain text,
-  no HTML, no numbering, no level tag, no emojis. Use "\\n" between the instruction and the Turkish sentence.
+  "✍️ Bo'sh joyni to'ldiring:\\nDün akşam arkadaşlarım___ sinemaya gittik. 🎬🍿" Max 220 characters, plain text,
+  no HTML, no numbering, no level tag. Use "\\n" between the instruction and the Turkish sentence.
+- EMOJIS (to make the quiz fun): start the Uzbek instruction with ONE fitting emoji (✍️ gap-fill, 🔤 meaning,
+  🔁 synonym, ↔️ antonym, 🧩 phrase/collocation, 🗣 set phrase, 🔄 word form…) and end the Turkish line with ONE or
+  TWO emojis that fit the situation of the sentence (🏫 school, 🛒 shopping, ✈️ travel, 🍽 food, 🩺 doctor…).
+  An emoji must NEVER give away the correct answer (in a meaning/translation question do not draw the answer word).
+  Max 3 emojis in the question. No emojis in the options (the system decorates them itself).
 - "options": exactly 4 different options, each max 60 characters, all plausible and of the same kind
   (four suffix forms, four words…). Exactly ONE option is correct; the others must be clearly wrong for a
   teacher. Never "all of the above"/"none of the above".
 - "correct": the exact text of the correct option.
-- "explanation": Uzbek (Latin), max 170 characters, max one line break: why the answer is right (the rule or the
-  meaning), may include a very short Turkish example. It is shown to students who choose a wrong answer.
+- "explanation": Uzbek (Latin), max 150 characters, max one line break: why the answer is right (the rule or the
+  meaning), may include a very short Turkish example. Start it with ONE fitting emoji (💡 📌 🧠 🎯 📖 …) and you may
+  add one more at the end. It is shown to students who choose a wrong answer.
 - Turkish must be 100% correct standard Turkish with ç ş ğ ı İ ö ü. Uzbek: correct Latin spelling with o', g',
   sh, ch and the apostrophe (so'z, ma'no). Never use Cyrillic.
 - Nothing political, religious or unsuitable for school students.
@@ -98,8 +104,8 @@ Fix in the Uzbek instruction and explanation:
   hozirgi zamon, o'tgan zamon, kelasi zamon, keng zamon (geniş zaman); fe'l, ot, sifat, ravish, ko'makchi;
   unli / undosh, jarangli / jarangsiz undosh; ma'nodosh (sinonim), zid ma'noli (antonim);
 - the explanation must say correctly WHY the right answer is right; remove filler.
-Rules: keep EVERY Turkish word, sentence and suffix exactly as it is. Do not change the meaning or the answer.
-Keep the instruction short. Explanation max 170 characters, max one line break.
+Rules: keep EVERY Turkish word, sentence and suffix exactly as it is, and keep the emojis. Do not change the meaning or the answer.
+Keep the instruction short. Explanation max 150 characters, max one line break.
 
 Output exactly one JSON object: {"items": [{"i": 0, "question": "...", "explanation": "..."}]}
 Return every item, edited or not."""
@@ -120,7 +126,9 @@ For EVERY question check:
 4. EXPLANATION: factually correct, matches the correct answer, explains the rule or meaning, no false statements
    about Turkish grammar.
 5. CLARITY & LEVEL: understandable without extra context, fits CEFR {level}, exactly one gap if it is a gap-fill.
-6. Limits: question max 220 chars, each option max 60 chars, explanation max 170 chars.
+6. EMOJIS: they fit the content and NEVER reveal or hint at the correct answer (e.g. a 🍞 next to a question
+   asking which word means "bread"). An emoji that gives a hint → not ok (or fix it by changing the emoji).
+7. Limits: question max 220 chars, each option max 60 chars, explanation max 150 chars.
 
 For each question return: "ok" (true only if everything is right), "score" 1-10 (10 = flawless), "problem"
 (short), and — only if you can fix it with full confidence — "fixed": the COMPLETE corrected question object
@@ -186,6 +194,18 @@ def norm_q(text: str) -> str:
     return re.sub(r"[\s_]+", " ", t).strip()
 
 
+EMOJI = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\u2190-\u21FF\u2300-\u23FF\uFE0F\u200D\u20E3]+")
+# Variantlar bezagi: bir savolda bitta to'plam (javobga ishora qilmaydi, faqat o'rin belgisi)
+DECO_SETS = [["🔴", "🔵", "🟢", "🟡"], ["🍎", "🍋", "🍇", "🍊"], ["🌷", "🌻", "🌹", "🌼"], ["⭐", "🌙", "☀️", "⚡"],
+             ["🐱", "🐶", "🦊", "🐼"], ["💎", "🎈", "🎁", "🎀"], ["🚗", "🚲", "🚀", "⛵"], ["🧁", "🍩", "🍪", "🍭"],
+             ["🟥", "🟦", "🟩", "🟨"], ["🌊", "🔥", "🍀", "❄️"], ["🎸", "🎺", "🥁", "🎻"], ["🦋", "🐝", "🐞", "🐬"]]
+KIND_DEFAULT_EMOJI = {GRAMMAR: "✍️", VOCAB: "🔤"}
+
+
+def has_emoji(t: str) -> bool:
+    return bool(EMOJI.search(t))
+
+
 def fix_apostrophes(t: str) -> str:
     """O'zbekcha o', g' va tutuq belgisi uchun bitta standart belgi."""
     return re.sub(r"(?<=[A-Za-z])[ʻʼ’‘`´](?=[A-Za-z]|\b)", "'", t)
@@ -204,8 +224,10 @@ def clean_question(raw: dict, kind: str | None = None) -> dict | None:
     q = re.sub(r"\n{3,}", "\n\n", q)
     opts = [re.sub(r"\s+", " ", str(o)).strip() for o in (raw.get("options") or [])]
     opts = [re.sub(r"^[A-Da-d][\).:]\s+", "", o) for o in opts]
+    opts = [re.sub(r"\s+", " ", EMOJI.sub("", o)).strip() for o in opts]      # bezakni tizim qo'yadi
     corr = re.sub(r"\s+", " ", str(raw.get("correct") or "")).strip()
     corr = re.sub(r"^[A-Da-d][\).:]\s+", "", corr)
+    corr = re.sub(r"\s+", " ", EMOJI.sub("", corr)).strip()
     if isinstance(raw.get("correct_index"), int) and 0 <= raw["correct_index"] < len(opts) and not corr:
         corr = opts[raw["correct_index"]]
     expl = str(raw.get("explanation") or "").replace("\\n", "\n").strip()
@@ -213,6 +235,10 @@ def clean_question(raw: dict, kind: str | None = None) -> dict | None:
     q, expl = fix_apostrophes(q), fix_apostrophes(expl)
     q = re.sub(r"_{2,}", "___", q)
     q = re.sub(r"___\s+([.,!?;:])", r"___\1", q)
+    if q and not has_emoji(q.split("\n", 1)[0]):
+        q = f"{KIND_DEFAULT_EMOJI[k]} {q}"
+    if expl and not has_emoji(expl[:3]):
+        expl = f"💡 {expl}"
     return {"kind": k, "question": q, "options": opts, "correct": corr, "explanation": expl,
             "key": str(raw.get("key") or "").strip()[:60]}
 
@@ -225,7 +251,7 @@ def problems(q: dict, prefix_len: int) -> list[str]:
         out.append("savol juda uzun")
     if len(q["options"]) != N_OPTIONS:
         out.append(f"{len(q['options'])} ta variant (4 ta kerak)")
-    if any(not o or len(o) > OPT_LIMIT for o in q["options"]):
+    if any(not o or len(o) > OPT_LIMIT - 4 for o in q["options"]):
         out.append("variant bo'sh yoki juda uzun")
     if len({cap.norm_item(o) for o in q["options"]}) != len(q["options"]):
         out.append("bir xil variantlar")
@@ -251,14 +277,28 @@ def finalize(q: dict, rng: random.Random) -> dict:
     correct = next(o for o in opts if o == q["correct"] or cap.norm_item(o) == cap.norm_item(q["correct"]))
     rng.shuffle(opts)
     return {"kind": q["kind"], "question": q["question"], "options": opts,
-            "correct_index": opts.index(correct), "explanation": q["explanation"], "key": q["key"]}
+            "correct_index": opts.index(correct), "explanation": q["explanation"], "key": q["key"],
+            "deco": rng.choice(DECO_SETS)}
 
 
 def poll_question(q: dict, i: int, total: int) -> str:
-    return f"{i}/{total} · {KIND_LABEL[q['kind']]}\n\n{q['question']}"
+    tail = " 🏁" if i == total else ""
+    return f"{i}/{total} · {KIND_LABEL[q['kind']]}{tail}\n\n{q['question']}"
 
 
-PREFIX_LEN = len(poll_question({"kind": VOCAB, "question": ""}, 10, 10))
+def poll_options(q: dict) -> list[str]:
+    deco = q.get("deco") or DECO_SETS[0]
+    return [f"{d} {o}" for d, o in zip(deco, q["options"])]
+
+
+def poll_explanation(q: dict) -> str:
+    """Izoh: to'g'ri javob + sabab (Telegram: 200 belgi, 2 tagacha qator)."""
+    expl = q["explanation"]
+    full = f"✅ {q['options'][q['correct_index']]}\n{expl}"
+    return full if len(full) <= EXPL_LIMIT and full.count("\n") <= 2 else expl
+
+
+PREFIX_LEN = len(poll_question({"kind": VOCAB, "question": ""}, 10, 10)) + 4   # + standart emoji
 
 
 # ------------------------------------------------------------------ agentlar
@@ -482,11 +522,11 @@ def preview_chunks(qs: QuizSet, limit: int = 3800) -> list[str]:
     total = len(qs.questions)
     for i, q in enumerate(qs.questions, 1):
         opts = []
-        for j, o in enumerate(q["options"]):
-            mark = "✅" if j == q["correct_index"] else "▫️"
-            opts.append(f"{mark} {e(o)}")
+        for j, o in enumerate(poll_options(q)):
+            mark = " ✅" if j == q["correct_index"] else ""
+            opts.append(f"{e(o)}{mark}")
         blocks.append(f"<b>{i}/{total} · {KIND_LABEL[q['kind']]}</b>\n{e(q['question'])}\n"
-                      + "\n".join(opts) + f"\n💡 <i>{e(q['explanation'])}</i>")
+                      + "\n".join(opts) + f"\n<i>{e(q['explanation'])}</i>")
     chunks, cur = [], ""
     for b in blocks:
         if cur and len(cur) + len(b) + 2 > limit:

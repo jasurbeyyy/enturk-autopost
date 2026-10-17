@@ -62,7 +62,7 @@ async def dry_run(s: Settings, type_key: str) -> None:
     gemini, eleven = clients(s)
     db = DB(s.data_dir / "dryrun.db")
     if type_key in ("kunlik_test", "test"):
-        from enturk.quiz import make_quiz_set, preview_chunks
+        from enturk.quiz import make_quiz_set, poll_explanation, poll_options, preview_chunks
         try:
             qs = await make_quiz_set(s, db, gemini, now=datetime.now(timezone.utc))
         finally:
@@ -77,7 +77,7 @@ async def dry_run(s: Settings, type_key: str) -> None:
         gh_annotate("notice", f"Testlar tayyor: {qs.level}, rad etilgan: {qs.qa.get('rejected')}\n"
                     + "\n".join(qs.qa.get("reasons", []))[:3500])
         gh_annotate("notice", "\n".join(
-            f"{i}. {q['question']} → {q['options'][q['correct_index']]} | {q['explanation']}"
+            f"{i}. {q['question']}\n   " + " / ".join(poll_options(q)) + f"\n   {poll_explanation(q)}"
             for i, q in enumerate(qs.questions, 1))[:3900])
         return
     try:

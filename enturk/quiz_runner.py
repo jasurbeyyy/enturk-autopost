@@ -16,7 +16,8 @@ from . import oneshot, planner
 from .db import DB, parse_iso
 from .gemini import GeminiClient
 from .oneshot import SlotRunner, keyboard
-from .quiz import QUIZ_LANG, QUIZ_TYPE, QuizSet, make_quiz_set, poll_question, preview_chunks, quiz_cfg
+from .quiz import (QUIZ_LANG, QUIZ_TYPE, QuizSet, make_quiz_set, poll_explanation, poll_options,
+                   poll_question, preview_chunks, quiz_cfg)
 from .settings import Settings
 from .telegram_api import TelegramAPI, TelegramError
 
@@ -159,13 +160,13 @@ class QuizRunner(SlotRunner):
         for i, q in enumerate(qs.questions, 1):
             for attempt in range(3):
                 try:
-                    await self.tg.send_poll(chat_id, poll_question(q, i, total), q["options"], q["correct_index"],
-                                            q["explanation"], anonymous=True)
+                    await self.tg.send_poll(chat_id, poll_question(q, i, total), poll_options(q),
+                                            q["correct_index"], poll_explanation(q), anonymous=True)
                     break
                 except TelegramError as exc:
                     if admin and "anonym" in str(exc).lower():
-                        await self.tg.send_poll(chat_id, poll_question(q, i, total), q["options"],
-                                                q["correct_index"], q["explanation"], anonymous=False)
+                        await self.tg.send_poll(chat_id, poll_question(q, i, total), poll_options(q),
+                                                q["correct_index"], poll_explanation(q), anonymous=False)
                         break
                     log.warning("Quiz %s yuborilmadi (%s): %s", i, attempt + 1, exc)
                     if attempt == 2:

@@ -224,6 +224,23 @@ def test_low_score_rejected_and_editor_cannot_touch_turkish(env):
 def test_apostrophes_and_gap_checks():
     q = quiz.clean_question({"kind": "grammar", "question": "Bo‘sh joyni to‘ldiring:\nEv____ gidiyorum.",
                              "options": ["-e", "-a", "-de", "-den"], "correct": "-e", "explanation": "ma’no"})
-    assert "Bo'sh joyni to'ldiring" in q["question"] and "Ev___ " in q["question"] and q["explanation"] == "ma'no"
+    assert "Bo'sh joyni to'ldiring" in q["question"] and "Ev___ " in q["question"] and q["explanation"] == "💡 ma'no"
     two_gaps = dict(q, question="Bo'sh joyni to'ldiring:\nEv___ ___ gidiyorum.")
     assert any("bo'sh joy" in p for p in quiz.problems(two_gaps, quiz.PREFIX_LEN))
+
+
+def test_emojis_on_questions_options_and_explanations(env):
+    s, db, clock = env
+    qs = asyncio.run(quiz.make_quiz_set(s, db, FakeGemini(), now=clock.now()))
+    for i, q in enumerate(qs.questions, 1):
+        assert quiz.has_emoji(q["question"].split("\n")[0])
+        opts = quiz.poll_options(q)
+        assert all(quiz.has_emoji(o[:2]) for o in opts) and len(set(o.split()[0] for o in opts)) == 4
+        assert [o.split(" ", 1)[1] for o in opts] == q["options"]
+        ex = quiz.poll_explanation(q)
+        assert ex.startswith("✅ " + q["options"][q["correct_index"]]) and len(ex) <= 200
+    assert quiz.poll_question(qs.questions[-1], 10, 10).startswith("10/10 · 📗 Kelime bilgisi 🏁")
+    # model variantlarga emoji qo'ysa ham olib tashlanadi
+    c = quiz.clean_question({"kind": "vocab", "question": "🔤 X?\nY", "options": ["🍞 ekmek", "su 💧", "et", "süt"],
+                             "correct": "🍞 ekmek", "explanation": "e"})
+    assert c["options"][:2] == ["ekmek", "su"] and c["correct"] == "ekmek"
