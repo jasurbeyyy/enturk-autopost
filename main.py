@@ -61,6 +61,20 @@ async def dry_run(s: Settings, type_key: str) -> None:
     from enturk.pipeline import Pipeline
     gemini, eleven = clients(s)
     db = DB(s.data_dir / "dryrun.db")
+    if type_key in ("kunlik_test", "test"):
+        from enturk.quiz import make_quiz_set, preview_chunks
+        try:
+            qs = await make_quiz_set(s, db, gemini, now=datetime.now(timezone.utc))
+        finally:
+            await gemini.aclose()
+            await eleven.aclose()
+        out = ROOT / "out"
+        out.mkdir(exist_ok=True)
+        stem = f"test_{datetime.now():%Y%m%d_%H%M%S}"
+        (out / f"{stem}.jpg").write_bytes(qs.image)
+        print(qs.intro_caption + "\n\n" + "\n\n".join(preview_chunks(qs)))
+        print(f"\n✅ Tayyor: out/{stem}.jpg")
+        return
     try:
         r = await Pipeline(s, db, gemini, eleven).run(type_key, now=datetime.now(timezone.utc))
     finally:
@@ -183,11 +197,12 @@ async def check(s: Settings) -> None:
         raise SystemExit(1)
 
 
-async def run_slot(s: Settings, test_type: str | None) -> None:
-    """GitHub Actions rejimi: navbatdagi post (yoki sinov posti) uchun to'liq sikl."""
+async def run_slot(s: Settings, test_type: str | None, quiz_test: bool = False) -> None:
+    """GitHub Actions rejimi: navbatdagi post yoki kunlik testlar (yoki sinov) uchun to'liq sikl."""
     from enturk.db import DB
-    from enturk.oneshot import SlotRunner
+    from enturk.oneshot import SlotRunner, utcnow
     from enturk.pipeline import Pipeline
+    from enturk.quiz_runner import QuizRunner
     from enturk.telegram_api import TelegramAPI
     if not s.bot_token or not s.admin_ids:
         raise SystemExit("TELEGRAM_BOT_TOKEN va ADMIN_IDS kerak (GitHub Secrets)")
@@ -197,7 +212,14 @@ async def run_slot(s: Settings, test_type: str | None) -> None:
     tg = TelegramAPI(s.bot_token)
     db = DB(s.data_dir / "enturk.db")
     try:
-        await SlotRunner(s, db, Pipeline(s, db, gemini, eleven), tg).run(test_type=test_type)
+        posts = SlotRunner(s, db, Pipeline(s, db, gemini, eleven), tg)
+        quizzes = QuizRunner(s, db, gemini, tg)
+        if quiz_test:
+            await quizzes.run(test=True)
+        elif test_type or posts.find_slot(utcnow()):
+            await posts.run(test_type=test_type)
+        else:
+            await quizzes.run()
     finally:
         await gemini.aclose()
         await eleven.aclose()
@@ -225,6 +247,7 @@ def main() -> None:
     p.add_argument("--dry-run", metavar="TUR", help="postni out/ ga saqlash, Telegram'siz")
     p.add_argument("--slot", action="store_true", help="GitHub rejimi: navbatdagi post")
     p.add_argument("--test", metavar="TUR", help="GitHub rejimi: sinov posti")
+    p.add_argument("--test-quiz", action="store_true", help="GitHub rejimi: sinov testlari (adminga)")
     p.add_argument("--voices", action="store_true", help="ElevenLabs ovozlari ro'yxati")
     a = p.parse_args()
     s = load_settings()
@@ -235,8 +258,8 @@ def main() -> None:
         asyncio.run(check(s))
     elif a.dry_run:
         asyncio.run(dry_run(s, a.dry_run))
-    elif a.slot or a.test:
-        asyncio.run(run_slot(s, a.test))
+    elif a.slot or a.test or a.test_quiz:
+        asyncio.run(run_slot(s, a.test, quiz_test=a.test_quiz))
     elif a.voices:
         asyncio.run(list_voices(s))
     else:

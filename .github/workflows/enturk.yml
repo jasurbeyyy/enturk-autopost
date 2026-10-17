@@ -7,13 +7,15 @@ on:
     # 07:07 UTC = 12:07 Toshkent → 13:00 posti
     # 14:07 UTC = 19:07 Toshkent → 20:00 posti
     - cron: "7 2,7,14 * * *"
+    # 11:07 UTC = 16:07 Toshkent → 17:00 kunlik testlar
+    - cron: "7 11 * * *"
   workflow_dispatch:
     inputs:
       rejim:
         description: "Nima qilamiz?"
         type: choice
         default: sinov_posti
-        options: [sinov_posti, navbatdagi_post, tekshirish, ovozlar]
+        options: [sinov_posti, sinov_testi, navbatdagi_post, tekshirish, ovozlar]
       tur:
         description: "Sinov posti turi"
         type: choice
@@ -62,6 +64,10 @@ jobs:
       - name: Sinov posti
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'sinov_posti'
         run: python main.py --test "${{ inputs.tur }}"
+
+      - name: Sinov testlari
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'sinov_testi'
+        run: python main.py --test-quiz
 
       - name: Tekshirish
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'tekshirish'

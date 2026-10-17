@@ -41,6 +41,10 @@ WORDS = [("tencere", "Tencere ocakta."), ("tava", "Tavada yumurta var."), ("bı�
          ("buzdolabı", "Süt buzdolabında.")]
 
 
+WORDS_UZ = [("tencere", "qozon"), ("tava", "tova"), ("bıçak", "pichoq"), ("kaşık", "qoshiq"),
+            ("çatal", "sanchqi"), ("tabak", "tarelka"), ("bardak", "stakan"), ("fırın", "duxovka")]
+
+
 class FakeGemini:
     def __init__(self) -> None:
         self.calls: list[str] = []
@@ -49,6 +53,28 @@ class FakeGemini:
         pass
 
     async def generate_json(self, system: str, prompt: str, **kw: Any) -> tuple[Any, list[str]]:
+        if "QUIZ WRITER" in system:
+            self.calls.append("quiz_writer")
+            ng = int(re.search(r"Write (\d+) \"grammar\"", prompt).group(1))
+            nv = int(re.search(r"and (\d+) \"vocab\"", prompt).group(1))
+            n = sum(c == "quiz_writer" for c in self.calls)
+            qs = []
+            for i in range(ng):
+                qs.append({"kind": "grammar", "question": f"Bo'sh joyni to'ldiring ({n}-{i}):\nBen her gün okul___ gidiyorum.",
+                           "options": ["-a", "-e", "-da", "-dan"], "correct": "-a",
+                           "explanation": "Yo'nalish: okul + -a → okula (qayerga?).", "key": f"-e hali {n}{i}"})
+            for i, (w, uz) in enumerate(WORDS_UZ[:nv]):
+                qs.append({"kind": "vocab", "question": f"«{uz}» turkchada qanday? ({n}-{i})",
+                           "options": [w, "masa", "kapı", "pencere"] if w not in ("masa", "kapı", "pencere")
+                           else [w, "ev", "yol", "su"], "correct": w,
+                           "explanation": f"{w} — {uz}.", "key": w})
+            return {"grammar_focus": "-e hali (yo'nalish)", "vocab_theme": "oshxona buyumlari",
+                    "questions": qs}, []
+        if "QUIZ CHECKER" in system:
+            self.calls.append("quiz_checker")
+            import json as _json
+            items = _json.loads(prompt.split("\n", 1)[1])
+            return {"results": [{"i": it["i"], "ok": True, "problem": "", "fixed": None} for it in items]}, []
         if "RESEARCH agent" in system:
             self.calls.append("research")
             return {"topic": "Oshxona buyumlari", "angle": "kundalik hayot",

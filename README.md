@@ -1,6 +1,6 @@
 # EnTurk_CSR — avtomatik post tizimi
 
-Bu tizim @EnTurk_CSR kanaliga kuniga 3 ta post tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti).
+Bu tizim @EnTurk_CSR kanaliga kuniga 3 ta post tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti). Bundan tashqari har kuni 17:00 da 10 ta test (quiz) chiqadi.
 U **GitHub Actions**'da bepul ishlaydi, server kerak emas.
 
 ## Qanday ishlaydi
@@ -58,6 +58,17 @@ Repozitoriyda: **Actions → EnTurk avtopost → Run workflow**
 2. `rejim: sinov_posti`, `tur: yangi_sozlar` — 3–5 daqiqada Telegram'ga sinov posti keladi. U kanalga o'zi chiqmaydi. Chiqarmoqchi bo'lsangiz, **✅ Kanalga chiqarish** tugmasini bosing.
 
 Shundan keyin tizim jadval bo'yicha o'zi ishlaydi.
+
+## Kunlik testlar (quiz)
+
+Har kuni **17:00** da kanalga avval **"Kunlik test"** posti (rasm bilan) chiqadi, ketidan **10 ta quiz**: 5 ta grammatika va 5 ta kelime bilgisi. Ular QuizBot'dagi kabi ishlaydi: 4 ta variant, bitta to'g'ri javob, xato tanlansa 💡 izoh ko'rinadi.
+
+- Har kuni navbatdagi daraja olinadi: A1 → A2 → B1 → B2.
+- Har bir savolni sifat nazorati alohida tekshiradi: bitta to'g'ri javob, turkcha va o'zbekcha xatosiz, daraja mos. Yaroqsiz savol tashlanadi va o'rniga yangisi yoziladi.
+- To'g'ri javob o'rni aralashtiriladi, avvalgi testlar takrorlanmaydi.
+- **10 daqiqa oldin** savol-javoblar sizga keladi, **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bilan. Hech narsa bosmasangiz, o'z vaqtida chiqadi.
+- **Sinash:** Actions → EnTurk avtopost → Run workflow → `rejim: sinov_testi`. Testlar faqat sizga keladi.
+- **Sozlash:** `config.yaml` → `quiz` bo'limi (vaqt, kunlar, savollar soni, darajalar). O'chirish uchun `enabled: false`. Vaqtni o'zgartirsangiz, `.github/workflows/enturk.yml`dagi `7 11 * * *` cron qatorini ham moslang.
 
 ## Boshqarish
 

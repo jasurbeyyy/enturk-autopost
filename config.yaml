@@ -66,6 +66,19 @@ motifs_en:
   - a modern café with large windows
   - an open notebook with a red pen on a desk
 
+# ---------------- Kunlik testlar (Telegram quiz) ----------------
+# Har kuni: avval "Test vaqti" posti, ketidan quizlar (QuizBot uslubida).
+# Vaqtni o'zgartirsangiz, .github/workflows/enturk.yml'dagi cron'ni ham moslang (vaqt − 5 soat − ~50 daqiqa, UTC).
+quiz:
+  enabled: true
+  time: "17:00"
+  days: [mon, tue, wed, thu, fri, sat, sun]
+  grammar: 5            # grammatika savollari soni
+  vocab: 5              # kelime bilgisi savollari soni
+  levels: [A1, A2, B1, B2]   # har kuni navbatdagi daraja
+  poll_interval_seconds: 3   # quizlar orasidagi pauza
+  hashtag: test
+
 # ---------------- Post turlari ----------------
 post_types:
   yangi_sozlar:

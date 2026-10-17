@@ -61,6 +61,30 @@ class TelegramAPI:
         return await self._call("sendAudio", {"chat_id": chat_id, "title": title, "performer": performer},
                                 files={"audio": ("enturk.mp3", audio, "audio/mpeg")})
 
+    async def send_poll(self, chat_id, question: str, options: list[str], correct: int,
+                        explanation: str = "", anonymous: bool = True) -> dict:
+        """Quiz (viktorina) — QuizBot'dagi kabi: bitta to'g'ri javob va izoh."""
+        base = {"chat_id": chat_id, "question": question, "options": [{"text": o} for o in options],
+                "type": "quiz", "explanation": explanation or None, "is_anonymous": anonymous}
+        # Bot API 10+: correct_option_ids; eski versiyalar: correct_option_id
+        variants = [{"correct_option_ids": [correct]}, {"correct_option_id": correct}]
+        if getattr(self, "_poll_variant", None) == 1:
+            variants.reverse()
+        last: TelegramError | None = None
+        for i, v in enumerate(variants):
+            try:
+                res = await self._call("sendPoll", {**base, **v})
+                self._poll_variant = 1 if "correct_option_id" in v else 0
+                return res
+            except TelegramError as exc:
+                last = exc
+                msg = str(exc).lower()
+                if "correct" in msg or "option" in msg or "quiz" in msg:
+                    log.info("sendPoll shakli #%s mos kelmadi: %s", i, exc)
+                    continue
+                raise
+        raise last or TelegramError("sendPoll: yuborilmadi")
+
     async def edit_text(self, chat_id, message_id: int, text: str) -> None:
         try:
             await self._call("editMessageText", {"chat_id": chat_id, "message_id": message_id,
