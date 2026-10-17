@@ -212,6 +212,7 @@ def clean_question(raw: dict, kind: str | None = None) -> dict | None:
     expl = re.sub(r"<[^>]+>", "", expl)
     q, expl = fix_apostrophes(q), fix_apostrophes(expl)
     q = re.sub(r"_{2,}", "___", q)
+    q = re.sub(r"___\s+([.,!?;:])", r"___\1", q)
     return {"kind": k, "question": q, "options": opts, "correct": corr, "explanation": expl,
             "key": str(raw.get("key") or "").strip()[:60]}
 
