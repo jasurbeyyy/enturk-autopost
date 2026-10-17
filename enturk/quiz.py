@@ -485,7 +485,8 @@ def intro_caption(s: Settings, qs: QuizSet, rng: random.Random) -> str:
     qc = quiz_cfg(s)
     ng = sum(q["kind"] == GRAMMAR for q in qs.questions)
     nv = sum(q["kind"] == VOCAB for q in qs.questions)
-    e = html.escape
+    def e(x: str) -> str:
+        return html.escape(x, quote=False)
     lines = [f"🧠 <b>[{qs.level}] KUNLIK TEST — {len(qs.questions)} ta savol</b>", "",
              e(rng.choice(OPENERS)), "",
              f"📘 <b>{ng} ta grammatika</b>" + (f" — {e(qs.grammar_focus)}" if qs.grammar_focus else ""),
@@ -517,7 +518,8 @@ def intro_image(s: Settings, qs: QuizSet, rng: random.Random) -> bytes:
 
 # ------------------------------------------------------------------ admin uchun ko'rinish
 def preview_chunks(qs: QuizSet, limit: int = 3800) -> list[str]:
-    e = html.escape
+    def e(x: str) -> str:
+        return html.escape(x, quote=False)
     blocks = []
     total = len(qs.questions)
     for i, q in enumerate(qs.questions, 1):
