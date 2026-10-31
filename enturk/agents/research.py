@@ -7,7 +7,7 @@ from datetime import datetime
 from ..gemini import GeminiClient
 
 SYSTEM = """You are the RESEARCH agent of an automated content team for the Telegram channel @EnTurk_CSR.
-The channel teaches Turkish (and sometimes English) to Uzbek speakers. Posts explain in Uzbek (Latin script)
+The channel teaches Turkish to Uzbek speakers. Posts explain in Uzbek (Latin script)
 and give examples in the target language.
 
 Your job: use Google Search to find ONE fresh, genuinely useful topic for the next post and collect accurate
@@ -18,7 +18,7 @@ Principles:
   news hooks for the current date, real situations Uzbek learners face (studying, working, travelling,
   living in Türkiye, taking exams), real exam requirements.
 - Verify language material against reliable sources (TDK Güncel Türkçe Sözlük, Yunus Emre Enstitüsü,
-  university Turkish-teaching materials; Cambridge / Oxford dictionaries for English).
+  university Turkish-teaching materials).
 - For exam topics use only official or clearly reliable sources and give the URL next to every fact.
   Never invent dates, fees, scores or rules.
 - Do not repeat the recent topics listed by the user; pick a clearly different theme.

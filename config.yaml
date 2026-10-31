@@ -35,8 +35,6 @@ elevenlabs:
     # Voice Library'dan tanlangan (elevenlabs.io'da har birini "Add to My Voices" qiling)
     tr_female: "jk1pqab9OzEmS07w0u2T"   # AURA VOX — ayol, Istanbul talaffuzi, ta'limiy
     tr_male: "qHdpkLDluFJPQyEvzZ5E"     # Mehmet Akif — erkak, standart turkcha, e-learning
-    en_female: "9BYUod15YOH2aePSd97v"   # Vanessa Voyce — ayol, amerikancha
-    en_male: "wDkXkmTqABGFuqM5TDga"     # Lucas — erkak, amerikancha, ingliz tili o'qituvchisi
   pause_ms: 650
 
 # ---------------- Brend ----------------
@@ -59,12 +57,6 @@ motifs_tr:
   - a cozy Istanbul street with colorful wooden houses and a red tram
   - Turkish carpet and kilim patterns
   - Turkish coffee with lokum on a copper tray
-motifs_en:
-  - a red double-decker bus on a city street
-  - a cozy library with a red armchair
-  - a classic red telephone box
-  - a modern café with large windows
-  - an open notebook with a red pen on a desk
 
 # ---------------- Kunlik testlar (Telegram quiz) ----------------
 # Har kuni: avval "Test vaqti" posti, ketidan quizlar (QuizBot uslubida).
@@ -79,7 +71,7 @@ quiz:
   poll_interval_seconds: 3   # quizlar orasidagi pauza
   hashtag: test
 
-# ---------------- Post turlari ----------------
+# ---------------- Post turlari (faqat turk tili) ----------------
 post_types:
   yangi_sozlar:
     title: "Yangi so'zlar"
@@ -150,8 +142,6 @@ post_types:
       - "Türkçe Yeterlilik Sınavı (Yunus Emre Enstitüsü TYS)"
       - "TÖMER Türkçe yeterlilik sınavı (Ankara Üniversitesi TÖMER va boshqalar)"
       - "CEFR bo'yicha turk tili darajalari (A1-C1) — umumiy talablar"
-      - "IELTS (ingliz tili)"
-      - "CEFR / Milliy sertifikat (ingliz tili)"
     requirements: >
       Useful, ACCURATE information about the given exam: format, sections, scoring, strategies, typical
       traps, preparation tips, or verified news. Only include dates, fees, rules or numbers if they are
@@ -168,36 +158,6 @@ post_types:
       A weekly review quiz built ONLY from the items taught in this week's posts (given in the context).
       8-10 quick questions (translate, fill the gap, choose the right option), answers hidden with spoilers.
       Audio: the correct Turkish answers.
-  en_iboralar:
-    title: "English phrases"
-    lang: en
-    levels: [A2, B1, B2]
-    hashtag: english
-    audio_line: "🎧 Talaffuz audioda"
-    narrator: female
-    requirements: >
-      4-6 useful everyday English phrases or idioms with Uzbek meanings and usage notes; example sentences.
-      Audio: the English phrases and examples.
-  en_diolog:
-    title: "English dialogue"
-    lang: en
-    levels: [A2, B1, B2]
-    hashtag: english
-    audio_line: "🎧 Diolog audioda ikki ovozda"
-    narrator: dialogue
-    requirements: >
-      A realistic 6-10 line English dialogue (travel, work, study, shopping...) with two speakers, then
-      4-6 key phrases with Uzbek meanings. Audio: the dialogue lines only.
-  en_sozlar:
-    title: "English words"
-    lang: en
-    levels: [A2, B1, B2]
-    hashtag: english
-    audio_line: "🎧 Talaffuz audioda"
-    narrator: male
-    requirements: >
-      8-10 English words around one theme with Uzbek meanings and short examples, plus a memory tip or
-      mini-quiz. Audio: each word, then its example.
 
 # ---------------- Haftalik jadval ----------------
 weekly:
@@ -207,7 +167,7 @@ weekly:
     - {time: "20:00", type: mavzuli_lugat}
   tue:
     - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: en_iboralar}
+    - {time: "13:00", type: haqiqiy_diolog}
     - {time: "20:00", type: hayotiy_maslahat}
   wed:
     - {time: "08:00", type: yangi_sozlar}
@@ -215,7 +175,7 @@ weekly:
     - {time: "20:00", type: imtihon}
   thu:
     - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: en_diolog}
+    - {time: "13:00", type: kunlik_iboralar}
     - {time: "20:00", type: mavzuli_lugat}
   fri:
     - {time: "08:00", type: yangi_sozlar}
@@ -223,7 +183,7 @@ weekly:
     - {time: "20:00", type: hayotiy_maslahat}
   sat:
     - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: en_sozlar}
+    - {time: "13:00", type: mavzuli_lugat}
     - {time: "20:00", type: imtihon}
   sun:
     - {time: "08:00", type: yangi_sozlar}

@@ -3,16 +3,17 @@ from __future__ import annotations
 
 import json
 
+from .. import graphics
 from ..gemini import GeminiClient
 
-SYSTEM = """You are the WRITER agent — a creative, experienced Turkish/English teacher and copywriter — for the
-Telegram channel @EnTurk_CSR, which teaches Turkish (and some English) to Uzbek speakers.
+SYSTEM = """You are the WRITER agent — a creative, experienced Turkish teacher and copywriter — for the
+Telegram channel @EnTurk_CSR, which teaches Turkish to Uzbek speakers.
 
 LANGUAGE RULES
 - Explanations, titles and translations: Uzbek in the LATIN script, using the apostrophe for o', g' and the
   tutuq belgisi (so'z, g'oya, ma'no). Never use Cyrillic.
 - Target-language examples: natural, modern, 100% correct Standard Turkish (İstanbul Türkçesi) with the right
-  letters ç ş ğ ı İ ö ü â — or natural modern English for English posts.
+  letters ç ş ğ ı İ ö ü â.
 - Everything must fit the given CEFR level. Uzbek translations must be accurate and natural.
 
 FORMAT RULES (Telegram HTML)
@@ -43,7 +44,8 @@ OUTPUT: exactly one JSON object:
   "items": ["every taught target-language word / phrase exactly as written in the post"],
   "image_brief": "one concrete English description of an illustration scene for this post (people, objects, setting). No text in the image.",
   "visual": {{"emojis": ["3-5 single emoji that clearly depict the CONCRETE objects, places or actions of THIS topic, most typical first (barber → 💈 ✂️ 💇; bank → 🏦 💳 💸; courier → 📦 🚚 🚪). Avoid generic ones like 📚 ✏️ unless the topic is about studying."],
-             "scene": "background scene that fits the topic best — Turkish posts: skyline (Istanbul mosques, general city life), bosphorus (sea, travel, transport, bridge), balloons (Cappadocia, holidays, nature, adventure), tulips (spring, flowers, feelings, family, health), tea (food, café, home, shopping, guests); English posts: london"}}}}"""
+             "scene": "background scene that fits the topic best: skyline (Istanbul mosques, general city life), bosphorus (sea, travel, transport, bridge), balloons (Cappadocia, holidays, nature, adventure), tulips (spring, flowers, feelings, family, health), tea (food, café, home, shopping, guests)",
+             "colors": ["2 colour themes for the image, best match first, chosen by the topic: {themes}"]}}}}"""
 
 TEMPLATE = """Write the next post.
 
@@ -74,7 +76,7 @@ LANG_NAMES = {"tr": "Turkish", "en": "English"}
 
 
 def _system(lang: str, narrator: str, body_limit: int) -> str:
-    return SYSTEM.format(body_limit=body_limit, target=max(body_limit - 150, 500),
+    return SYSTEM.format(body_limit=body_limit, target=max(body_limit - 150, 500), themes=graphics.THEME_GUIDE,
                          lang_name=LANG_NAMES.get(lang, lang),
                          narrator=narrator if narrator in ("female", "male") else "female")
 
@@ -128,6 +130,8 @@ def _normalize(data: dict) -> dict:
     data.setdefault("image_brief", "")
     vis = data.get("visual") if isinstance(data.get("visual"), dict) else {}
     emojis = vis.get("emojis") if isinstance(vis.get("emojis"), list) else []
+    colors = vis.get("colors") if isinstance(vis.get("colors"), list) else [vis.get("color") or ""]
     data["visual"] = {"emojis": [str(e).strip() for e in emojis if str(e).strip()][:6],
-                      "scene": str(vis.get("scene") or "").strip().lower()}
+                      "scene": str(vis.get("scene") or "").strip().lower(),
+                      "colors": [str(c).strip().lower() for c in colors if str(c or "").strip()][:3]}
     return data

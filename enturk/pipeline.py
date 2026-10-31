@@ -17,7 +17,7 @@ from .settings import ROOT, Settings
 
 log = logging.getLogger(__name__)
 
-STRICT_DEDUPE_TYPES = {"yangi_sozlar", "mavzuli_lugat", "en_sozlar", "kunlik_iboralar", "en_iboralar"}
+STRICT_DEDUPE_TYPES = {"yangi_sozlar", "mavzuli_lugat", "kunlik_iboralar"}
 MAX_REVISIONS = 3
 MAX_TOPICS = 2
 
@@ -80,7 +80,7 @@ class Pipeline:
 
     def _recent_visuals(self) -> dict:
         """Kanaldagi oxirgi postlarning maketi va sahnasi (ketma-ket takrorlamaslik uchun)."""
-        layouts, scenes = [], []
+        layouts, scenes, themes, footers = [], [], [], []
         for r in self.db.recent(days=14):
             try:
                 q = json.loads(r.get("qa_json") or "{}")
@@ -88,7 +88,10 @@ class Pipeline:
                 q = {}
             layouts.append(q.get("layout"))
             scenes.append(q.get("scene"))
-        return {"recent_layouts": layouts, "recent_scenes": scenes}
+            themes.append(q.get("theme"))
+            footers.append(q.get("footer"))
+        return {"recent_layouts": layouts, "recent_scenes": scenes, "recent_themes": themes,
+                "recent_footers": footers}
 
     # ---------- asosiy ----------
     async def run(self, type_key: str, *, now: datetime, avoid_topics: list[str] | None = None,
@@ -183,7 +186,7 @@ class Pipeline:
 
         full_caption = draft["caption_html"].rstrip() + "\n\n" + footer
         label = pt["title"].upper()
-        sublabel = f"{level}  ·  {'ENGLISH' if lang == 'en' else 'TÜRKÇE'}"
+        sublabel = f"{level}  ·  TÜRKÇE"
 
         image_task = illustrator.illustrate(
             self.gemini, cfg=s.cfg, root=ROOT, lang=lang,
@@ -191,7 +194,8 @@ class Pipeline:
             topic=draft.get("title") or draft.get("topic") or res.get("topic", ""), label=label,
             sublabel=sublabel, items=draft.get("items"), post_type=type_key, style_id=style["id"],
             visual=draft.get("visual"), lines=draft.get("audio"),
-            recent_layouts=ctx["recent_layouts"], recent_scenes=ctx["recent_scenes"])
+            recent_layouts=ctx["recent_layouts"], recent_scenes=ctx["recent_scenes"],
+            recent_themes=ctx["recent_themes"], recent_footers=ctx["recent_footers"])
         if s.audio_enabled:
             audio_task = voice.synthesize(
                 self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,
@@ -202,7 +206,8 @@ class Pipeline:
 
         qa_meta = {"verdict": qa_result.get("verdict"), "score": qa_result.get("score"),
                    "issues": qa_result.get("issues", []), "exam": exam,
-                   "layout": visual_meta.get("layout"), "scene": visual_meta.get("scene")}
+                   "layout": visual_meta.get("layout"), "scene": visual_meta.get("scene"),
+                   "theme": visual_meta.get("theme"), "footer": visual_meta.get("footer")}
         return PostResult(
             post_type=type_key, lang=lang, level=level, style_id=style["id"],
             topic=str(draft.get("topic") or res.get("topic")), title=str(draft.get("title", "")),

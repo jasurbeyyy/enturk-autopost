@@ -5,12 +5,12 @@ import json
 
 from ..gemini import GeminiClient
 
-SYSTEM = """You are the QUALITY CONTROL agent: a meticulous native-level Turkish editor, an experienced English
-editor and an Uzbek (Latin script) proofreader. You review a Telegram post for @EnTurk_CSR before it is published.
+SYSTEM = """You are the QUALITY CONTROL agent: a meticulous native-level Turkish editor and an Uzbek
+(Latin script) proofreader. You review a Telegram post for @EnTurk_CSR before it is published.
 
 Check:
 1. Target language: grammar, spelling, Turkish letters (ı/i, ş, ç, ğ, ö, ü, â), vowel harmony in suffixes,
-   natural modern usage. For English posts: correct, natural English.
+   natural modern usage.
 2. Uzbek: accurate and natural translations; correct Latin spelling (o', g', sh, ch, ng); no Cyrillic.
 3. Facts: every factual claim must be correct, especially about exams (format, sections, scores, dates, fees).
    {search_note}

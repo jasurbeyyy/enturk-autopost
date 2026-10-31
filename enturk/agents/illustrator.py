@@ -1,4 +1,4 @@
-"""3-agent: Rassom — mavzuga mos grafika (kod) yoki Nano Banana illustratsiyasi + brend tasmasi va logo."""
+"""3-agent: Rassom — mavzuga mos grafika (kod) yoki Nano Banana illustratsiyasi + rangli pastki tasma va logo."""
 from __future__ import annotations
 
 import io
@@ -6,7 +6,7 @@ import logging
 import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageOps
 
 from .. import graphics
 from ..gemini import GeminiClient
@@ -21,7 +21,7 @@ Scene: {brief}
 Setting / decorative motif: {motif}.
 
 Art direction:
-- Color palette dominated by Turkish red ({red}) and clean white, with a few warm neutral accents (cream, soft beige,
+- Color palette dominated by {red} and clean white, with a few warm neutral accents (cream, soft beige,
   a little charcoal). Friendly, bright, uncluttered, soft shadows, subtle paper texture.
 - Characters (if any) are friendly adults, modest everyday clothing, diverse but natural.
 - ABSOLUTELY NO text of any kind: no letters, words, numbers, captions, signs with writing, logos or watermarks.
@@ -32,45 +32,23 @@ Art direction:
 STRICT_SUFFIX = "\n\nIMPORTANT: The previous attempt contained text. Draw NO letters or writing at all."
 
 
-def _font(path: Path, size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(str(path), size)
+def compose(raw: bytes, *, logo_path: Path, font_bold: Path | None = None, font_regular: Path | None = None,
+            red: str = graphics.RED, label: str, sublabel: str, band: int = 150,
+            size: tuple[int, int] = (1080, 1350), theme: str | dict | None = None,
+            footer: str | None = None) -> bytes:
+    """Rasmga pastki tasma, logo va rubrika nomini qo'yadi. JPEG qaytaradi.
 
-
-def compose(raw: bytes, *, logo_path: Path, font_bold: Path, font_regular: Path, red: str,
-            label: str, sublabel: str, band: int = 150, size: tuple[int, int] = (1080, 1350)) -> bytes:
-    """Illustratsiyaga pastki qizil tasma, oq logo va rubrika nomini qo'yadi. JPEG qaytaradi."""
+    theme — rang temasi (graphics.THEMES nomi yoki lug'at), footer — tasma uslubi (graphics.FOOTERS)."""
     W, H = size
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     img = ImageOps.fit(img, (W, H), Image.LANCZOS, centering=(0.5, 0.42))
-    draw = ImageDraw.Draw(img)
-
-    # tasma
-    top = H - band
-    draw.rectangle((0, top, W, H), fill=red)
-    draw.rectangle((0, top, W, top + 4), fill="#FFFFFF")
-
-    # logo (shaffof foni kesiladi)
-    logo = Image.open(logo_path).convert("RGBA")
-    logo = logo.crop(logo.getbbox())
-    lh = band - 40
-    lw = int(logo.width * lh / logo.height)
-    logo = logo.resize((lw, lh), Image.LANCZOS)
-    margin = 36
-    img.paste(logo, (margin, top + (band - lh) // 2 + 2), logo)
-
-    # rubrika nomi (o'ng tomonda)
-    max_w = W - lw - margin * 3
-    size_l = 46
-    f_label = _font(font_bold, size_l)
-    while draw.textlength(label, font=f_label) > max_w and size_l > 24:
-        size_l -= 2
-        f_label = _font(font_bold, size_l)
-    f_sub = _font(font_regular, 28)
-    right = W - margin
-    y_label = top + band // 2 - size_l + 4
-    draw.text((right, y_label), label, font=f_label, fill="#FFFFFF", anchor="ra")
-    draw.text((right, y_label + size_l + 12), sublabel, font=f_sub, fill="#FFE9EA", anchor="ra")
-
+    if isinstance(theme, dict):
+        t = theme
+    elif theme in graphics.THEMES:
+        t = graphics.THEMES[theme]
+    else:
+        t = graphics.make_theme("custom", red, "#13807F", "tulip") if red != graphics.RED else graphics.THEMES["red"]
+    graphics.draw_footer(img, t, footer or "solid", label, sublabel, logo_path, band=band)
     out = io.BytesIO()
     img.save(out, "JPEG", quality=92, optimize=True)
     return out.getvalue()
@@ -95,29 +73,34 @@ async def illustrate(gemini: GeminiClient, *, cfg: dict, root: Path, lang: str, 
                      items: list[str] | None = None, post_type: str = "", style_id: str = "",
                      visual: dict | None = None, lines: list[dict] | None = None,
                      recent_layouts: list[str] | None = None,
-                     recent_scenes: list[str] | None = None) -> tuple[bytes, dict]:
-    """Rasm yaratadi. (jpeg_baytlar, {"layout", "scene", ...}) qaytaradi."""
-    fonts = dict(font_bold=root / "assets" / "font-bold.ttf", font_regular=root / "assets" / "font-regular.ttf")
+                     recent_scenes: list[str] | None = None,
+                     recent_themes: list[str] | None = None,
+                     recent_footers: list[str] | None = None) -> tuple[bytes, dict]:
+    """Rasm yaratadi. (jpeg_baytlar, {"layout", "scene", "theme", "footer", ...}) qaytaradi."""
     band = int(cfg["brand"].get("band_height", 150))
+    footer = graphics.choose_footer(recent_footers or [], random.Random(f"{topic}|{post_type}|{style_id}"))
 
-    def finish(raw: bytes) -> bytes:
-        return compose(raw, logo_path=root / "assets" / "logo_white.png", red=cfg["brand"]["red"],
-                       label=label, sublabel=sublabel, band=band, **fonts)
+    def finish(raw: bytes, theme: str) -> bytes:
+        return compose(raw, logo_path=root / "assets" / "logo_white.png", label=label, sublabel=sublabel,
+                       band=band, theme=theme, footer=footer)
 
     def code_graphic() -> tuple[bytes, dict]:
         img, meta = graphics.render_post(
             post_type=post_type, style_id=style_id, lang=lang, title=topic or label, label=label,
             sublabel=sublabel, items=items, visual=visual, lines=lines,
-            recent_layouts=recent_layouts, recent_scenes=recent_scenes)
-        return finish(_png(img)), meta
+            recent_layouts=recent_layouts, recent_scenes=recent_scenes, recent_themes=recent_themes)
+        meta["footer"] = footer
+        return finish(_png(img), meta["theme"]), meta
 
     if cfg["models"].get("image_mode", "grafika") != "gemini":
         return code_graphic()
 
-    motifs = cfg.get("motifs_en" if lang == "en" else "motifs_tr") or cfg.get("motifs_tr", [])
+    motifs = cfg.get("motifs_tr") or []
     motif = random.choice(motifs) if motifs else "Istanbul skyline"
-    prompt = PROMPT.format(lang_name="English" if lang == "en" else "Turkish", brief=brief or topic,
-                           motif=motif, red=cfg["brand"]["red"])
+    vis = visual if isinstance(visual, dict) else {}
+    theme = graphics.choose_theme(vis.get("colors"), vis.get("emojis") or [], recent_themes or [], random.Random())
+    prompt = PROMPT.format(lang_name="Turkish", brief=brief or topic, motif=motif,
+                           red=graphics.THEMES[theme]["main"])
     raw = b""
     for attempt in range(3):
         try:
@@ -139,4 +122,4 @@ async def illustrate(gemini: GeminiClient, *, cfg: dict, root: Path, lang: str, 
         log.info("Rasm qayta chiziladi (%s): %s", attempt + 1, verdict)
         if verdict.get("has_text") and STRICT_SUFFIX not in prompt:
             prompt += STRICT_SUFFIX
-    return finish(raw), {"layout": "gemini", "scene": motif}
+    return finish(raw, theme), {"layout": "gemini", "scene": motif, "theme": theme, "footer": footer}

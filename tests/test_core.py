@@ -96,5 +96,6 @@ def test_every_post_type_has_styles_and_schedule_valid():
         assert len(items) == 3, day
         for e in items:
             assert e["type"] in s.cfg["post_types"], e
-    en_days = [d for d, items in s.cfg["weekly"].items() if any(e["type"].startswith("en_") for e in items)]
-    assert len(en_days) == 3
+    # faqat turk tili: inglizcha post turlari ham, jadvalda ham yo'q
+    assert not any(k.startswith("en_") for k in s.cfg["post_types"])
+    assert all(pt.get("lang", "tr") == "tr" for pt in s.cfg["post_types"].values())

@@ -499,21 +499,22 @@ def intro_caption(s: Settings, qs: QuizSet, rng: random.Random) -> str:
 
 
 def intro_image(s: Settings, qs: QuizSet, rng: random.Random) -> bytes:
+    theme = rng.choice(list(graphics.THEMES))
+    footer = rng.choice(graphics.FOOTERS)
     ctx = graphics.Ctx(
         title="Bugungi testlar", label="KUNLIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE",
         items=[f"{sum(q['kind'] == GRAMMAR for q in qs.questions)} ta grammatika",
                f"{sum(q['kind'] == VOCAB for q in qs.questions)} ta kelime bilgisi",
                "Javob va izoh bilan"],
         emojis=rng.choice([["🧠", "✏️", "🏆"], ["🎯", "📝", "⭐"], ["💡", "✅", "🏅"], ["🧩", "📚", "🥇"]]),
-        scene="tulips", lang="tr", seed=rng.randint(0, 2**31))
+        scene=rng.choice(graphics.SCENES), lang="tr", seed=rng.randint(0, 2**31), t=graphics.THEMES[theme])
     img = graphics.LAYOUTS["quiz"](ctx)
     b = io.BytesIO()
     img.save(b, "PNG")
     cfg = s.cfg
     return illustrator.compose(
-        b.getvalue(), logo_path=ROOT / "assets" / "logo_white.png", red=cfg["brand"]["red"],
-        label="KUNLIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE", band=int(cfg["brand"].get("band_height", 150)),
-        font_bold=ROOT / "assets" / "font-bold.ttf", font_regular=ROOT / "assets" / "font-regular.ttf")
+        b.getvalue(), logo_path=ROOT / "assets" / "logo_white.png", theme=theme, footer=footer,
+        label="KUNLIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE", band=int(cfg["brand"].get("band_height", 150)))
 
 
 # ------------------------------------------------------------------ admin uchun ko'rinish

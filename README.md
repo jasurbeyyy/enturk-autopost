@@ -1,6 +1,6 @@
 # EnTurk_CSR — avtomatik post tizimi
 
-Bu tizim @EnTurk_CSR kanaliga kuniga 3 ta post tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti). Bundan tashqari har kuni 17:00 da 10 ta test (quiz) chiqadi.
+Bu tizim @EnTurk_CSR kanaliga kuniga 3 ta turk tili posti tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti). Bundan tashqari har kuni 17:00 da 10 ta test (quiz) chiqadi.
 U **GitHub Actions**'da bepul ishlaydi, server kerak emas.
 
 ## Qanday ishlaydi
@@ -12,7 +12,7 @@ GitHub har bir post vaqtidan taxminan 50 daqiqa oldin tizimni ishga tushiradi:
 | 1 | Tadqiqotchi | Rubrika bo'yicha Google Search orqali yangi, dolzarb mavzu topadi (Gemini) |
 | 2 | Yozuvchi | Uslublar bankidan navbatdagi uslubni tanlab, postni yozadi |
 | 5 | Sifat nazorati | Turkcha grammatika, tarjima, faktlar, uzunlik va takrorlanmaslikni tekshiradi. Xato bo'lsa, post qayta yoziladi |
-| 3 | Rassom | Har bir postga mavzusiga mos grafika chizadi (Gemini'siz, bepul): 8 xil maket (kartochka, katta emoji, chat, test, poster, stikerlar, daftar, Iznik koshinlari), 6 xil sahna (Istanbul, Bosfor, Kappadokiya, lolalar, choy-simit, London) va mavzuli emojilar. Ketma-ket postlarda maket va sahna takrorlanmaydi. Pastda qizil tasma va logo |
+| 3 | Rassom | Har bir postga mavzusiga mos grafika chizadi (Gemini'siz, bepul): 8 xil maket (kartochka, katta emoji, chat, test, poster, stikerlar, daftar, Iznik koshinlari), 5 xil sahna (Istanbul, Bosfor, Kappadokiya, lolalar, choy-simit), mavzuli emojilar va **mavzuga mos rang**: 9 ta rang temasi (qizil, ko'k, firuza, yashil, apelsin, binafsha, to'q ko'k, pushti, qahva), har birining o'z naqshi bor. Pastki logo tasmasi 8 xil uslubda (to'lqin, diagonal, suzuvchi karta, lenta, arka va h.k.) navbat bilan almashadi. Ketma-ket postlarda maket, sahna, rang va tasma takrorlanmaydi |
 | 4 | Diktor | ElevenLabs orqali misollarni o'qiydi. Diologlarda ikki ovoz ishlatiladi |
 | 6 | Admin bot | Post vaqtidan **10 daqiqa oldin** postni sizga yuboradi. Unda **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bor. Hech narsa bosmasangiz, post o'z vaqtida chiqadi |
 
@@ -48,7 +48,7 @@ Repozitoriyda: **Settings → Secrets and variables → Actions → New reposito
 Kanal nomi boshqa bo'lsa, **Variables** bo'limida `CHANNEL_ID` o'zgaruvchisini yarating.
 
 ### 4. Ovozlar
-`config.yaml` faylida 4 ta ovoz tanlab qo'yilgan: AURA VOX, Mehmet Akif, Vanessa Voyce va Lucas.
+`config.yaml` faylida 2 ta turkcha ovoz tanlab qo'yilgan: AURA VOX va Mehmet Akif.
 elevenlabs.io → Voice Library'da har birini qidirib, **"Add to My Voices"** tugmasini bosing.
 Boshqa ovoz xohlasangiz, uning ID'sini `config.yaml` → `elevenlabs.voices` bo'limiga yozing.
 

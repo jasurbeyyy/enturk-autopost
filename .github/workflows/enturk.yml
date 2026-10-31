@@ -21,7 +21,7 @@ on:
         type: choice
         default: yangi_sozlar
         options: [yangi_sozlar, kunlik_iboralar, mavzuli_lugat, haqiqiy_diolog, hayotiy_maslahat,
-                  imtihon, haftalik_takrorlash, en_iboralar, en_diolog, en_sozlar]
+                  imtihon, haftalik_takrorlash]
 
 permissions:
   contents: write

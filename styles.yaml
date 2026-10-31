@@ -7,7 +7,7 @@
 styles:
   - id: kartochka
     name: "Kartochka"
-    applies_to: [yangi_sozlar, mavzuli_lugat, en_sozlar, haftalik_takrorlash]
+    applies_to: [yangi_sozlar, mavzuli_lugat, haftalik_takrorlash]
     instructions: >
       Title line: theme emoji + bold "[LEVEL] THEME — N ta yangi so'z". Each item as a compact card:
       a fitting emoji, bold target word, " — " Uzbek meaning, next line "› " + short example sentence.
@@ -29,7 +29,7 @@ styles:
 
   - id: vaziyat_sahnasi
     name: "Vaziyat sahnasi"
-    applies_to: [kunlik_iboralar, en_iboralar, hayotiy_maslahat]
+    applies_to: [kunlik_iboralar, hayotiy_maslahat]
     instructions: >
       Put the reader into a concrete scene ("Tasavvur qiling: …"). Numbered moments 1️⃣ 2️⃣ 3️⃣ … each
       describing the situation in Uzbek, then "🗣 " + bold phrase + " — " Uzbek meaning.
@@ -52,7 +52,7 @@ styles:
 
   - id: chat
     name: "Chat"
-    applies_to: [haqiqiy_diolog, en_diolog]
+    applies_to: [haqiqiy_diolog]
     instructions: >
       Bold title with a real-life context. Dialogue lines each starting with 👨 or 👩 (no names needed),
       natural spoken language. Then "📌 Kalit so'zlar:" bullet list "• <b>word</b> — meaning".
@@ -74,7 +74,7 @@ styles:
 
   - id: qoida_guruh
     name: "Qoida + guruh"
-    applies_to: [mavzuli_lugat, yangi_sozlar, en_sozlar]
+    applies_to: [mavzuli_lugat, yangi_sozlar]
     instructions: >
       Show a pattern: base word → derived word with the suffix/part in bold. Then "📌 Qoida:" one clear
       rule compared to Uzbek if possible. Then a short block of example sentences. End with a task
@@ -95,7 +95,7 @@ styles:
 
   - id: xato_togri
     name: "Xato ❌ / To'g'ri ✅"
-    applies_to: [hayotiy_maslahat, kunlik_iboralar, en_iboralar]
+    applies_to: [hayotiy_maslahat, kunlik_iboralar]
     instructions: >
       A list of typical mistakes Uzbek speakers make. For each numbered item: ❌ wrong usage,
       ✅ correct usage with Uzbek translation, and a one-line explanation (🇹🇷 or 🇬🇧).
@@ -134,23 +134,23 @@ styles:
 
   - id: challenge
     name: "Challenge"
-    applies_to: [en_iboralar, en_sozlar, yangi_sozlar, kunlik_iboralar, haftalik_takrorlash]
+    applies_to: [yangi_sozlar, kunlik_iboralar, haftalik_takrorlash]
     instructions: >
       Gamified: invite the reader to guess first. Numbered items with the target expression in bold
       and the meaning hidden in a spoiler. End with "🏆 Nechtasini topdingiz? Izohda yozing 👇".
     example: |
-      🇬🇧 <b>[B1] English Challenge: 5 ta kundalik idiom</b>
+      🎯 <b>[B1] Challenge: 5 ta kundalik deyim</b>
 
       Avval ma'nosini o'zingiz topishga harakat qiling, keyin spoilerni oching 👇
 
-      1. It's <b>a piece of cake</b>. → <tg-spoiler>Juda oson</tg-spoiler>
-      2. I'm feeling <b>under the weather</b>. → <tg-spoiler>Biroz betobman</tg-spoiler>
+      1. Bu iş <b>çocuk oyuncağı</b>. → <tg-spoiler>Juda oson</tg-spoiler>
+      2. Bugün <b>keyfim yok</b>. → <tg-spoiler>Kayfiyatim yo'q</tg-spoiler>
 
       🏆 Nechtasini topdingiz? Izohda yozing: 3/5, 5/5? 👇
 
   - id: mini_hikoya
     name: "Mini-hikoya"
-    applies_to: [yangi_sozlar, mavzuli_lugat, haqiqiy_diolog, en_diolog]
+    applies_to: [yangi_sozlar, mavzuli_lugat, haqiqiy_diolog]
     instructions: >
       A very short story (4-7 sentences) in the target language where the target words are in bold.
       Then a compact glossary "• <b>word</b> — meaning". End with one comprehension question with the
@@ -179,14 +179,14 @@ styles:
 
   - id: juftliklar
     name: "Juftliklar"
-    applies_to: [mavzuli_lugat, kunlik_iboralar, en_iboralar]
+    applies_to: [mavzuli_lugat, kunlik_iboralar]
     instructions: >
       Contrast pairs: formal vs informal, similar-looking words, or opposites. Show them side by side
       "🎩 rasmiy: … | 👕 norasmiy: …" or "A ≠ B" with Uzbek meanings and one example each.
 
   - id: diolog_boshqotirma
     name: "Diolog-boshqotirma"
-    applies_to: [haqiqiy_diolog, en_diolog]
+    applies_to: [haqiqiy_diolog]
     instructions: >
       A short dialogue with 3-4 key words replaced by ___(1)___, ___(2)___ … Then a word bank and the
       answers in spoilers: "1 → <tg-spoiler>word</tg-spoiler>". Then the Uzbek meanings of the answers.
