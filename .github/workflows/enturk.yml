@@ -2,13 +2,11 @@ name: EnTurk avtopost
 
 on:
   schedule:
-    # GitHub vaqti UTC. Toshkent = UTC+5.
-    # 02:07 UTC = 07:07 Toshkent → 08:00 posti
-    # 07:07 UTC = 12:07 Toshkent → 13:00 posti
-    # 14:07 UTC = 19:07 Toshkent → 20:00 posti
-    - cron: "7 2,7,14 * * *"
-    # 11:07 UTC = 16:07 Toshkent → 17:00 kunlik testlar
-    - cron: "7 11 * * *"
+    # GitHub jadvali ba'zan soatlab kechikadi yoki ishga tushishni tashlab ketadi.
+    # Shuning uchun har 30 daqiqada uyg'onadi: post/test vaqtiga 2 soatdan kam qolgan bo'lsa
+    # (yoki 4 soatgacha kech qolgan bo'lsa) tayyorlaydi, aks holda 1 daqiqada tugaydi.
+    # Chiqqan post qayta chiqmaydi (state/enturk.db). Public repozitoriyda bu bepul.
+    - cron: "23,53 * * * *"
   workflow_dispatch:
     inputs:
       rejim:

@@ -135,3 +135,34 @@ def test_without_elevenlabs_posts_photo_only(env):
     chan = [x for x in tg.sent if x[1] == "@EnTurk_CSR"]
     assert [x[0] for x in chan] == ["photo"]
     assert "🎧" not in chan[0][2]
+
+
+def test_late_run_still_catches_missed_slot(env):
+    """GitHub soatlab kechiksa: 08:00 posti 10:30 da ham chiqariladi (13:00 hali uzoq)."""
+    s, db, clock, *_ = env
+    r = _runner_for_late(s, db)
+    slot = r.find_slot(datetime(2026, 10, 19, 10, 30, tzinfo=s.tz))
+    assert slot and slot[0].hour == 8
+
+
+def test_missed_slot_skipped_when_next_is_near(env):
+    """11:30 da: 08:00 kech qolgan, lekin 13:00 yaqin → 13:00 tayyorlanadi, ikkita post ketma-ket chiqmaydi."""
+    s, db, clock, *_ = env
+    r = _runner_for_late(s, db)
+    slot = r.find_slot(datetime(2026, 10, 19, 11, 30, tzinfo=s.tz))
+    assert slot and slot[0].hour == 13
+
+
+def test_too_late_slot_dropped(env):
+    s, db, clock, *_ = env
+    r = _runner_for_late(s, db)
+    assert r.find_slot(datetime(2026, 10, 19, 12, 0, tzinfo=s.tz)) is not None
+    # 08:00 dan 5 soat o'tdi va 13:00 ham o'tib, chiqib bo'lgan → hech narsa
+    did = db.create_draft(slot_at=datetime(2026, 10, 19, 13, 0, tzinfo=s.tz), post_type="x", lang="tr")
+    db.update(did, status="published")
+    assert r.find_slot(datetime(2026, 10, 19, 14, 0, tzinfo=s.tz)) is None
+
+
+def _runner_for_late(s, db):
+    from enturk.oneshot import SlotRunner
+    return SlotRunner(s, db, None, None)

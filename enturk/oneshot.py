@@ -21,9 +21,11 @@ from .telegram_api import TelegramAPI, TelegramError
 
 log = logging.getLogger(__name__)
 
-# GitHub kechiksa ham post yo'qolmasligi uchun: shu oraliqdagi chiqarilmagan post olinadi
+# GitHub kechiksa ham post yo'qolmasligi uchun: shu oraliqdagi chiqarilmagan post olinadi.
+# GitHub jadvali ba'zan soatlab kechikadi, shuning uchun kech qolgan post ham 4 soatgacha chiqariladi
+# (agar keyingi post yaqinlashib qolgan bo'lsa, eskisi tashlab ketiladi — find_slot'ga qarang).
 WINDOW_BEFORE = timedelta(minutes=120)
-WINDOW_AFTER = timedelta(minutes=60)
+WINDOW_AFTER = timedelta(hours=4)
 TEST_LISTEN = timedelta(minutes=30)
 
 
@@ -55,7 +57,7 @@ class SlotRunner:
 
     # ---------- qaysi post? ----------
     def find_slot(self, now: datetime) -> tuple[datetime, dict] | None:
-        cands = []
+        scheduled, cands = [], []
         for hhmm in planner.slot_times(self.s.cfg):
             for day_shift in (-1, 0, 1):
                 local = (now + timedelta(days=day_shift)).astimezone(self.s.tz)
@@ -65,10 +67,15 @@ class SlotRunner:
                 entry = planner.entry_for(self.s.cfg, slot)
                 if not entry:
                     continue
+                scheduled.append(slot)
                 done = [d for d in self.db.for_slot(slot) if d["status"] in ("published", "expired")]
                 if done:
                     continue
                 cands.append((slot, entry))
+        # Kech qolgan post: keyingi post ham yaqin bo'lsa (yoki chiqib bo'lgan bo'lsa), eskisi tashlanadi —
+        # ikkita post ketma-ket chiqmasin
+        cands = [(slot, e) for slot, e in cands
+                 if slot >= now or not any(o > slot for o in scheduled)]
         cands.sort(key=lambda x: x[0])
         return cands[0] if cands else None
 

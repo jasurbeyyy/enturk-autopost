@@ -5,7 +5,7 @@ U **GitHub Actions**'da bepul ishlaydi, server kerak emas.
 
 ## Qanday ishlaydi
 
-GitHub har bir post vaqtidan taxminan 50 daqiqa oldin tizimni ishga tushiradi:
+GitHub tizimni har 30 daqiqada uyg'otadi. Post vaqtiga 2 soatdan kam qolgan bo'lsa, tizim postni tayyorlaydi:
 
 | # | Agent | Nima qiladi |
 |---|-------|-------------|
@@ -73,18 +73,18 @@ Har kuni **17:00** da kanalga avval **"Kunlik test"** posti (rasm bilan) chiqadi
 - To'g'ri javob o'rni aralashtiriladi, avvalgi testlar takrorlanmaydi.
 - **10 daqiqa oldin** savol-javoblar sizga keladi, **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bilan. Ko'rib chiqish shart emas: hech narsa bosmasangiz, o'z vaqtida chiqadi.
 - **Sinash:** Actions → EnTurk avtopost → Run workflow → `rejim: sinov_testi`. Testlar faqat sizga keladi. `rejim: test_tahlili` esa Telegram'ga hech narsa yubormaydi, faqat savollarni jurnalda ko'rsatadi.
-- **Sozlash:** `config.yaml` → `quiz` bo'limi (vaqt, kunlar, savollar soni, darajalar). O'chirish uchun `enabled: false`. Vaqtni o'zgartirsangiz, `.github/workflows/enturk.yml`dagi `7 11 * * *` cron qatorini ham moslang.
+- **Sozlash:** `config.yaml` → `quiz` bo'limi (vaqt, kunlar, savollar soni, darajalar). O'chirish uchun `enabled: false`. Vaqtni o'zgartirsangiz, cron'ga tegish shart emas.
 
 ## Boshqarish
 
 - **To'xtatish:** Settings → Secrets and variables → Actions → **Variables** bo'limida `PAUSED` = `1` qo'ying. Davom ettirish uchun `0` qiling.
-- **Jadval:** haftalik jadval `config.yaml` → `weekly` bo'limida. Soatlarni o'zgartirsangiz, `.github/workflows/enturk.yml` faylidagi `cron` qatorini ham moslang. Cron UTC vaqtida yoziladi: Toshkent vaqti minus 5 soat, post vaqtidan ~50 daqiqa oldin.
+- **Jadval:** haftalik jadval `config.yaml` → `weekly` bo'limida. Soatlarni o'zgartirsangiz, cron'ga tegish shart emas: tizim har 30 daqiqada o'zi tekshiradi.
 - **Uslublar:** `styles.yaml` faylida. Yangi uslub qo'shish mumkin.
 - **Takrorlanmaslik:** chiqqan postlar tarixi `state/enturk.db` faylida saqlanadi. GitHub uni har safar o'zi yangilab qo'yadi, uni o'chirmang.
 
 ## Bilish kerak bo'lgan narsalar
 
-- **Kechikish:** GitHub ba'zan ishga tushishni 5–20 daqiqa kechiktiradi. Tizim shuning uchun ertaroq boshlaydi. Juda katta kechikish bo'lsa, post bir necha daqiqa kech chiqishi mumkin.
+- **Kechikish:** GitHub jadvali ba'zan soatlab kechikadi yoki ishga tushishni tashlab ketadi. Shuning uchun tizim har 30 daqiqada uyg'onadi. Post vaqti o'tib ketgan bo'lsa ham, 4 soat ichida u baribir chiqariladi. Faqat keyingi post yaqin qolgan bo'lsa, eskisi tashlab ketiladi, shunda ikkita post ketma-ket chiqmaydi.
 - **ElevenLabs:** oyiga taxminan 50–60 ming belgi audio ketadi. "tekshirish" rejimi qolgan belgilarni ko'rsatadi. Voice Library'dagi professional ovozlar pullik tarif talab qilishi mumkin.
 - **Gemini:** har bir postda 1–3 ta rasm va bir nechta matn so'rovi bo'ladi. Narxlarni ai.google.dev/pricing sahifasida tekshiring.
 - Har bir "Qayta ishlash" — to'liq yangi post, ya'ni qo'shimcha xarajat.

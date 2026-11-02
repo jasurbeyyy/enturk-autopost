@@ -221,10 +221,17 @@ async def run_slot(s: Settings, test_type: str | None, quiz_test: bool = False) 
         quizzes = QuizRunner(s, db, gemini, tg)
         if quiz_test:
             await quizzes.run(test=True)
-        elif test_type or posts.find_slot(utcnow()):
+        elif test_type:
             await posts.run(test_type=test_type)
         else:
-            await quizzes.run()
+            # qaysi vaqti oldinroq bo'lsa, o'shani qilamiz (kechikkan test yoki post)
+            now = utcnow()
+            post_slot = posts.find_slot(now)
+            quiz_slot = quizzes.find_slot(now)
+            if post_slot and (not quiz_slot or post_slot[0] <= quiz_slot):
+                await posts.run()
+            else:
+                await quizzes.run()
     finally:
         await gemini.aclose()
         await eleven.aclose()

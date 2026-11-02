@@ -165,8 +165,12 @@ def test_slot_dispatch_picks_quiz_not_post(env):
     s, db, clock = env
     tg = PollTG(clock)
     posts = SlotRunner(s, db, Pipeline(s, db, FakeGemini(), FakeEleven()), tg)
-    assert posts.find_slot(clock.now()) is None          # 16:07 da post yo'q
+    # 13:00 posti chiqib bo'lgan → 16:07 da post yo'q, test bor
+    did = db.create_draft(slot_at=datetime(2026, 10, 17, 13, 0, tzinfo=s.tz), post_type="x", lang="tr")
+    db.update(did, status="published")
+    assert posts.find_slot(clock.now()) is None
     assert _runner(s, db, tg).find_slot(clock.now()) is not None
+    db.update(did, status="cancelled")
     clock.t = datetime(2026, 10, 17, 12, 7, tzinfo=s.tz)  # 13:00 posti vaqti
     assert posts.find_slot(clock.now()) is not None
     assert _runner(s, db, tg).find_slot(clock.now()) is None
