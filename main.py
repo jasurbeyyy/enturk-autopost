@@ -238,6 +238,19 @@ async def run_slot(s: Settings, test_type: str | None, quiz_test: bool = False) 
         await tg.aclose()
 
 
+async def run_republish(s: Settings, draft_id: int | None) -> None:
+    from enturk.db import DB
+    from enturk.republish import republish
+    from enturk.telegram_api import TelegramAPI
+    if not s.bot_token:
+        raise SystemExit("TELEGRAM_BOT_TOKEN kerak (GitHub Secrets)")
+    tg = TelegramAPI(s.bot_token)
+    try:
+        await republish(s, DB(s.data_dir / "enturk.db"), tg, draft_id)
+    finally:
+        await tg.aclose()
+
+
 async def list_voices(s: Settings) -> None:
     from enturk.eleven import ElevenClient
     e = ElevenClient(s.eleven_key, s.cfg["elevenlabs"]["model_id"])
@@ -260,6 +273,8 @@ def main() -> None:
     p.add_argument("--slot", action="store_true", help="GitHub rejimi: navbatdagi post")
     p.add_argument("--test", metavar="TUR", help="GitHub rejimi: sinov posti")
     p.add_argument("--test-quiz", action="store_true", help="GitHub rejimi: sinov testlari (adminga)")
+    p.add_argument("--republish", nargs="?", const="0", metavar="ID",
+                   help="chiqmay qolgan postni qayta chiqarish (ID bo'lmasa — bugungi oxirgisi)")
     p.add_argument("--voices", action="store_true", help="ElevenLabs ovozlari ro'yxati")
     a = p.parse_args()
     s = load_settings()
@@ -272,6 +287,8 @@ def main() -> None:
         asyncio.run(dry_run(s, a.dry_run))
     elif a.slot or a.test or a.test_quiz:
         asyncio.run(run_slot(s, a.test, quiz_test=a.test_quiz))
+    elif a.republish is not None:
+        asyncio.run(run_republish(s, int(a.republish or 0) or None))
     elif a.voices:
         asyncio.run(list_voices(s))
     else:
