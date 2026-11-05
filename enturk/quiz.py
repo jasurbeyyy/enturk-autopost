@@ -39,7 +39,7 @@ MAX_ROUNDS = 4
 CYRILLIC = re.compile(r"[Ѐ-ӿ]")
 
 WRITER_SYSTEM = """You are the QUIZ WRITER agent — an experienced teacher of Turkish for Uzbek speakers — for the
-Telegram channel @EnTurk_CSR. You write multiple-choice questions that will be posted as Telegram quizzes
+Telegram channel @jasurturktili. You write multiple-choice questions that will be posted as Telegram quizzes
 (like @QuizBot): a question, 4 answer options, exactly one correct option and a short explanation.
 
 LEVEL: CEFR {level}. Every question must fit this level.

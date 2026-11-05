@@ -1,5 +1,5 @@
 [Unit]
-Description=EnTurk_CSR avtopost boti
+Description=Jasur | Turk tili avtopost boti
 After=network-online.target
 Wants=network-online.target
 

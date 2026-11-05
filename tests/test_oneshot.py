@@ -31,7 +31,7 @@ class FakeTG:
         self.sent.append(("text", chat_id, text, reply_markup)); return self._m(chat_id)
     async def send_photo(self, chat_id, photo, caption):
         self.sent.append(("photo", chat_id, caption)); return self._m(chat_id)
-    async def send_audio(self, chat_id, audio, title, performer="EnTurk_CSR"):
+    async def send_audio(self, chat_id, audio, title, performer="Jasur | Turk tili"):
         self.sent.append(("audio", chat_id, title)); return self._m(chat_id)
     async def edit_text(self, chat_id, message_id, text):
         self.edits.append(text)
@@ -58,7 +58,7 @@ class FakeTG:
 def env(tmp_path, monkeypatch):
     s = load_settings()
     s.admin_ids = [111]
-    s.channel = "@EnTurk_CSR"
+    s.channel = "@jasurturktili"
     s.data_dir = tmp_path
     s.eleven_key = "test"
     for k in s.cfg["elevenlabs"]["voices"]:
@@ -79,7 +79,7 @@ def test_nothing_pressed_publishes_at_slot(env):
     tg = FakeTG(clock)
     asyncio.run(_runner(s, db, tg).run())
     admin = [x[0] for x in tg.sent if x[1] == 111]
-    chan = [x[0] for x in tg.sent if x[1] == "@EnTurk_CSR"]
+    chan = [x[0] for x in tg.sent if x[1] == "@jasurturktili"]
     assert admin == ["photo", "audio", "text"] and chan == ["photo", "audio"]
     (d,) = db.by_status("published")
     assert parse_iso(d["publish_at"]).astimezone(s.tz).strftime("%H:%M") == "08:00"
@@ -95,7 +95,7 @@ def test_regen_then_publish_late(env):
     (d,) = db.by_status("published")
     pub = parse_iso(d["publish_at"]).astimezone(s.tz)
     assert pub.strftime("%H:%M") >= "08:06"          # asl vaqt o'tsa ham chiqdi
-    assert [x[0] for x in tg.sent if x[1] == "@EnTurk_CSR"] == ["photo", "audio"]  # faqat bitta post
+    assert [x[0] for x in tg.sent if x[1] == "@jasurturktili"] == ["photo", "audio"]  # faqat bitta post
     assert [x[0] for x in tg.sent if x[1] == 111].count("photo") == 2
 
 
@@ -123,7 +123,7 @@ def test_test_post_times_out_without_publishing(env):
     s, db, clock = env
     tg = FakeTG(clock)
     asyncio.run(_runner(s, db, tg).run(test_type="haqiqiy_diolog"))
-    assert not [x for x in tg.sent if x[1] == "@EnTurk_CSR"]
+    assert not [x for x in tg.sent if x[1] == "@jasurturktili"]
     assert "Sinov tugadi" in tg.edits[-1]
 
 
@@ -132,7 +132,7 @@ def test_without_elevenlabs_posts_photo_only(env):
     s.eleven_key = ""
     tg = FakeTG(clock)
     asyncio.run(_runner(s, db, tg).run())
-    chan = [x for x in tg.sent if x[1] == "@EnTurk_CSR"]
+    chan = [x for x in tg.sent if x[1] == "@jasurturktili"]
     assert [x[0] for x in chan] == ["photo"]
     assert "🎧" not in chan[0][2]
 

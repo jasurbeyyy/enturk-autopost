@@ -254,7 +254,7 @@ async def list_voices(s: Settings) -> None:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="EnTurk_CSR avtopost")
+    p = argparse.ArgumentParser(description="Jasur | Turk tili avtopost")
     p.add_argument("--check", action="store_true", help="kalitlar va ulanishlarni tekshirish")
     p.add_argument("--dry-run", metavar="TUR", help="postni out/ ga saqlash, Telegram'siz")
     p.add_argument("--slot", action="store_true", help="GitHub rejimi: navbatdagi post")

@@ -27,12 +27,12 @@ def test_visible_len_emoji_counts_two():
 
 
 def test_strip_footer_like():
-    body = "🍳 <b>[A1] X</b>\nmatn\n👉 @EnTurk_CSR\n#yangi_sozlar #A1"
+    body = "🍳 <b>[A1] X</b>\nmatn\n👉 @jasurturktili\n#yangi_sozlar #A1"
     assert cap.strip_footer_like(body) == "🍳 <b>[A1] X</b>\nmatn"
 
 
 def _checks(body_text, **kw):
-    base = dict(body_html=body_text, body_text=body_text, footer_text="👉 @EnTurk_CSR", level="A1",
+    base = dict(body_html=body_text, body_text=body_text, footer_text="👉 @jasurturktili", level="A1",
                 audio=[{"speaker": "female", "text": "merhaba"}], items=["merhaba"],
                 recent_items=set(), strict_dedupe=True, has_levels=True)
     base.update(kw)

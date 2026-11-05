@@ -1,6 +1,6 @@
-# EnTurk_CSR — avtomatik post tizimi
+# Jasur | Turk tili (@jasurturktili) — avtomatik post tizimi
 
-Bu tizim @EnTurk_CSR kanaliga kuniga 3 ta turk tili posti tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti). Bundan tashqari har kuni 17:00 da 10 ta test (quiz) chiqadi.
+Bu tizim @jasurturktili kanaliga kuniga 3 ta turk tili posti tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti). Bundan tashqari har kuni 17:00 da 10 ta test (quiz) chiqadi.
 U **GitHub Actions**'da bepul ishlaydi, server kerak emas.
 
 ## Qanday ishlaydi
@@ -25,7 +25,7 @@ GitHub tizimni har 30 daqiqada uyg'otadi. Post vaqtiga 2 soatdan kam qolgan bo'l
 
 ### 1. Telegram bot
 1. @BotFather → `/newbot` buyrug'i bilan bot yarating va tokenni saqlab qo'ying.
-2. Botni @EnTurk_CSR kanaliga **admin** qilib qo'shing va unga **"Post yozish"** huquqini bering.
+2. Botni @jasurturktili kanaliga **admin** qilib qo'shing va unga **"Post yozish"** huquqini bering.
 3. Botga bitta xabar yozing, masalan `/start`. Bot sizga post yubora olishi uchun shu kerak.
 4. O'z Telegram ID raqamingizni @userinfobot'dan oling.
 

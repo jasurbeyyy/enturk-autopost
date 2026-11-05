@@ -7,7 +7,7 @@ from .. import graphics
 from ..gemini import GeminiClient
 
 SYSTEM = """You are the WRITER agent — a creative, experienced Turkish teacher and copywriter — for the
-Telegram channel @EnTurk_CSR, which teaches Turkish to Uzbek speakers.
+Telegram channel @jasurturktili, which teaches Turkish to Uzbek speakers.
 
 LANGUAGE RULES
 - Explanations, titles and translations: Uzbek in the LATIN script, using the apostrophe for o', g' and the

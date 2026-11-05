@@ -83,7 +83,7 @@ class FakeApp:
 @pytest.fixture
 def coord(tmp_path, monkeypatch):
     monkeypatch.setenv("ADMIN_IDS", "111")
-    monkeypatch.setenv("CHANNEL_ID", "@EnTurk_CSR")
+    monkeypatch.setenv("CHANNEL_ID", "@jasurturktili")
     s = load_settings()
     s.data_dir = tmp_path
     s.eleven_key = "test"
@@ -126,9 +126,9 @@ def test_normal_flow_publishes_on_time(coord):
         assert pub.when >= slot
         await coord.app.job_queue.fire(f"pub-{did}")
         assert coord.db.get(did)["status"] == "published"
-        channel = [x for x in coord.app.bot.sent if x[1] == "@EnTurk_CSR"]
+        channel = [x for x in coord.app.bot.sent if x[1] == "@jasurturktili"]
         assert [x[0] for x in channel] == ["photo", "audio"]
-        assert "👉 @EnTurk_CSR" in channel[0][2]
+        assert "👉 @jasurturktili" in channel[0][2]
     asyncio.run(go())
 
 

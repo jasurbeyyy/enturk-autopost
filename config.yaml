@@ -1,5 +1,5 @@
 # ============================================================
-#  EnTurk_CSR avtomatik post tizimi — asosiy sozlamalar
+#  "Jasur | Turk tili" avtomatik post tizimi — asosiy sozlamalar
 #  (maxfiy kalitlar bu yerda EMAS, .env faylida saqlanadi)
 # ============================================================
 
@@ -12,7 +12,7 @@ preview_minutes_before: 10
 # Bot o'chiq bo'lib, vaqti o'tib ketgan post necha daqiqagacha baribir chiqariladi
 late_publish_grace_minutes: 180
 
-signature: "👉 @EnTurk_CSR"
+signature: "👉 @jasurturktili"
 
 # ---------------- Modellar ----------------
 models:

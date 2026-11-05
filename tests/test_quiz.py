@@ -34,7 +34,7 @@ async def _nosleep(_):
 def env(tmp_path, monkeypatch):
     s = load_settings()
     s.admin_ids = [111]
-    s.channel = "@EnTurk_CSR"
+    s.channel = "@jasurturktili"
     s.data_dir = tmp_path
     # 2026-10-17 shanba, 16:07 Toshkent (testlar 17:00 da)
     clock = Clock(datetime(2026, 10, 17, 16, 7, tzinfo=s.tz))
@@ -50,7 +50,7 @@ def _runner(s, db, tg, gemini=None):
 
 
 def _channel(tg):
-    return [x for x in tg.sent if x[1] == "@EnTurk_CSR"]
+    return [x for x in tg.sent if x[1] == "@jasurturktili"]
 
 
 # ------------------------------------------------------------------ tekshiruvlar
@@ -87,7 +87,7 @@ def test_make_set_5_grammar_5_vocab(env):
     qs = asyncio.run(quiz.make_quiz_set(s, db, FakeGemini(), now=clock.now()))
     kinds = [q["kind"] for q in qs.questions]
     assert kinds == ["grammar"] * 5 + ["vocab"] * 5
-    assert "KUNLIK TEST — 10 ta savol" in qs.intro_caption and "@EnTurk_CSR" in qs.intro_caption
+    assert "KUNLIK TEST — 10 ta savol" in qs.intro_caption and "@jasurturktili" in qs.intro_caption
     assert qs.image[:2] == b"\xff\xd8"
 
 

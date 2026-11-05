@@ -6,7 +6,7 @@ from datetime import datetime
 
 from ..gemini import GeminiClient
 
-SYSTEM = """You are the RESEARCH agent of an automated content team for the Telegram channel @EnTurk_CSR.
+SYSTEM = """You are the RESEARCH agent of an automated content team for the Telegram channel @jasurturktili.
 The channel teaches Turkish to Uzbek speakers. Posts explain in Uzbek (Latin script)
 and give examples in the target language.
 

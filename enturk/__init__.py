@@ -1,1 +1,1 @@
-"""EnTurk_CSR — Telegram kanaliga avtomatik post tayyorlovchi agentlar tizimi."""
+"""Jasur | Turk tili (@jasurturktili) — Telegram kanaliga avtomatik post tayyorlovchi agentlar tizimi."""

@@ -66,7 +66,7 @@ def load_settings(root: Path | None = None) -> Settings:
         gemini_key=os.getenv("GEMINI_API_KEY", ""),
         eleven_key=os.getenv("ELEVENLABS_API_KEY", ""),
         admin_ids=admin_ids,
-        channel=os.getenv("CHANNEL_ID", "@EnTurk_CSR"),
+        channel=os.getenv("CHANNEL_ID", "@jasurturktili"),
         mock=os.getenv("MOCK", "0") == "1",
         cfg=cfg,
         styles=styles,

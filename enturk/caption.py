@@ -106,7 +106,7 @@ def strip_footer_like(html: str) -> str:
         plain = re.sub(r"<[^>]+>", "", line).strip()
         if re.fullmatch(r"(#[\w']+\s*)+", plain):
             continue
-        if "@EnTurk_CSR" in plain and len(plain) < 40:
+        if ("@jasurturktili" in plain or "@EnTurk_CSR" in plain) and len(plain) < 40:
             continue
         keep.append(line)
     return "\n".join(keep)

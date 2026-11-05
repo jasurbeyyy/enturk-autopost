@@ -57,7 +57,7 @@ class TelegramAPI:
         return await self._call("sendPhoto", {"chat_id": chat_id, "caption": caption, "parse_mode": "HTML"},
                                 files={"photo": ("post.jpg", photo, "image/jpeg")})
 
-    async def send_audio(self, chat_id, audio: bytes, title: str, performer: str = "EnTurk_CSR") -> dict:
+    async def send_audio(self, chat_id, audio: bytes, title: str, performer: str = "Jasur | Turk tili") -> dict:
         return await self._call("sendAudio", {"chat_id": chat_id, "title": title, "performer": performer},
                                 files={"audio": ("enturk.mp3", audio, "audio/mpeg")})
 

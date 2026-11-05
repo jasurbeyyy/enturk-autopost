@@ -37,7 +37,7 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
       ADMIN_IDS: ${{ secrets.ADMIN_IDS }}
-      CHANNEL_ID: ${{ vars.CHANNEL_ID || '@EnTurk_CSR' }}
+      CHANNEL_ID: ${{ vars.CHANNEL_ID || '@jasurturktili' }}
       PAUSED: ${{ vars.PAUSED || '0' }}
       DATA_DIR: state
       TZ: Asia/Tashkent

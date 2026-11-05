@@ -181,7 +181,7 @@ class Coordinator:
             if d.get("audio_path"):
                 with open(d["audio_path"], "rb") as f:
                     await bot.send_audio(self.admin, audio=f, title=d["audio_title"] or "Talaffuz",
-                                         performer="EnTurk_CSR", filename=f"enturk_{draft_id}.mp3")
+                                         performer="Jasur | Turk tili", filename=f"enturk_{draft_id}.mp3")
         except TelegramError as exc:
             log.exception("Preview yuborilmadi #%s", draft_id)
             self.db.update(draft_id, status="failed", error=f"preview: {exc}")
@@ -213,7 +213,7 @@ class Coordinator:
             if d.get("audio_path"):
                 with open(d["audio_path"], "rb") as f:
                     await bot.send_audio(self.s.channel, audio=f, title=d["audio_title"] or "Talaffuz",
-                                         performer="EnTurk_CSR", filename=f"enturk_{draft_id}.mp3")
+                                         performer="Jasur | Turk tili", filename=f"enturk_{draft_id}.mp3")
         except TelegramError as exc:
             log.exception("Kanalga chiqmadi #%s", draft_id)
             self.db.update(draft_id, status="previewed", error=f"publish: {exc}")
@@ -347,7 +347,7 @@ class Coordinator:
                 f"Admin bo'lish uchun bu raqamni .env fayldagi ADMIN_IDS ga yozing.", parse_mode=ParseMode.HTML)
             return
         await update.message.reply_text(
-            "👋 EnTurk_CSR avtopost boti ishlayapti.\n\n"
+            "👋 Jasur | Turk tili avtopost boti ishlayapti.\n\n"
             "/holat — bugungi postlar\n/jadval — haftalik jadval\n"
             "/sinov yangi_sozlar — sinov posti (kanalga chiqmaydi)\n"
             "/pauza, /davom — avtomatik rejimni to'xtatish / davom ettirish")

@@ -6,7 +6,7 @@ import json
 from ..gemini import GeminiClient
 
 SYSTEM = """You are the QUALITY CONTROL agent: a meticulous native-level Turkish editor and an Uzbek
-(Latin script) proofreader. You review a Telegram post for @EnTurk_CSR before it is published.
+(Latin script) proofreader. You review a Telegram post for @jasurturktili before it is published.
 
 Check:
 1. Target language: grammar, spelling, Turkish letters (ı/i, ş, ç, ğ, ö, ü, â), vowel harmony in suffixes,
