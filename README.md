@@ -5,7 +5,9 @@ U **GitHub Actions**'da bepul ishlaydi, server kerak emas.
 
 ## Qanday ishlaydi
 
-GitHub tizimni har 30 daqiqada uyg'otadi. Post vaqtiga 2 soatdan kam qolgan bo'lsa, tizim postni tayyorlaydi:
+Tizimni **navbatchi** ishga tushiradi (`EnTurk navbatchi` workflow). U keyingi post yoki test vaqtini o'zi kutib turadi: vaqtiga taxminan 1 soat qolganda asosiy tizimni ishga tushiradi, keyin o'zini qayta ishga tushiradi. Shuning uchun GitHub jadvali kechiksa ham postlar o'z vaqtida chiqadi. Zaxira sifatida GitHub jadvali ham tizimni har 30 daqiqada uyg'otadi.
+
+Post tayyorlash bosqichlari:
 
 | # | Agent | Nima qiladi |
 |---|-------|-------------|
@@ -78,13 +80,15 @@ Har kuni **17:00** da kanalga avval **"Kunlik test"** posti (rasm bilan) chiqadi
 ## Boshqarish
 
 - **To'xtatish:** Settings → Secrets and variables → Actions → **Variables** bo'limida `PAUSED` = `1` qo'ying. Davom ettirish uchun `0` qiling.
+- **Navbatchi:** Actions bo'limida "EnTurk navbatchi" doim bitta ishlab turgan holatda ko'rinadi. Bu normal holat: u keyingi post vaqtini kutyapti. Zanjir biror sababdan uzilsa, 3 soat ichida o'zi qayta boshlanadi. Qo'lda boshlash uchun: **Actions → EnTurk navbatchi → Run workflow**.
+- **Chiqmay qolgan post:** **Actions → EnTurk avtopost → Run workflow → `rejim: qayta_chiqarish`**. Raqamni bo'sh qoldirsangiz, bugungi chiqmay qolgan oxirgi post yangi imzo va logo bilan chiqadi.
 - **Jadval:** haftalik jadval `config.yaml` → `weekly` bo'limida. Soatlarni o'zgartirsangiz, cron'ga tegish shart emas: tizim har 30 daqiqada o'zi tekshiradi.
 - **Uslublar:** `styles.yaml` faylida. Yangi uslub qo'shish mumkin.
 - **Takrorlanmaslik:** chiqqan postlar tarixi `state/enturk.db` faylida saqlanadi. GitHub uni har safar o'zi yangilab qo'yadi, uni o'chirmang.
 
 ## Bilish kerak bo'lgan narsalar
 
-- **Kechikish:** GitHub jadvali ba'zan soatlab kechikadi yoki ishga tushishni tashlab ketadi. Shuning uchun tizim har 30 daqiqada uyg'onadi. Post vaqti o'tib ketgan bo'lsa ham, 4 soat ichida u baribir chiqariladi. Faqat keyingi post yaqin qolgan bo'lsa, eskisi tashlab ketiladi, shunda ikkita post ketma-ket chiqmaydi.
+- **Kechikish:** GitHub jadvali ba'zan soatlab kechikadi yoki ishga tushishni tashlab ketadi. Shuning uchun asosiy ishni navbatchi bajaradi, jadval esa zaxira. Post vaqti o'tib ketgan bo'lsa ham, 4 soat ichida u baribir chiqariladi. Faqat keyingi post yaqin qolgan bo'lsa, eskisi tashlab ketiladi, shunda ikkita post ketma-ket chiqmaydi.
 - **ElevenLabs:** oyiga taxminan 50–60 ming belgi audio ketadi. "tekshirish" rejimi qolgan belgilarni ko'rsatadi. Voice Library'dagi professional ovozlar pullik tarif talab qilishi mumkin.
 - **Gemini:** har bir postda 1–3 ta rasm va bir nechta matn so'rovi bo'ladi. Narxlarni ai.google.dev/pricing sahifasida tekshiring.
 - Har bir "Qayta ishlash" — to'liq yangi post, ya'ni qo'shimcha xarajat.

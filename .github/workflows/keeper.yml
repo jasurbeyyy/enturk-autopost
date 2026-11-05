@@ -1,0 +1,56 @@
+name: EnTurk navbatchi
+
+# GitHub jadvali (cron) ba'zan soatlab kechikadi yoki umuman ishlamaydi.
+# Navbatchi keyingi post/test vaqtini o'zi kutadi, vaqti kelganda "EnTurk avtopost"ni ishga tushiradi
+# va o'zini qayta ishga tushiradi — zanjir uzilmaydi. Cron bu yerda faqat zaxira:
+# zanjir biror sababdan uzilsa, uni qayta boshlaydi.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */3 * * *"
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: enturk-keeper
+  cancel-in-progress: false
+
+jobs:
+  keep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PAUSED: ${{ vars.PAUSED || '0' }}
+      DATA_DIR: state
+      TZ: Asia/Tashkent
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Kutubxonalar
+        run: pip install -r requirements.txt
+
+      - name: Keyingi post yoki test vaqtini kutish
+        id: wait
+        run: |
+          python tools/keeper.py | tee keeper.log
+          echo "result=$(tail -n 1 keeper.log)" >> "$GITHUB_OUTPUT"
+
+      - name: Asosiy tizimni ishga tushirish
+        if: steps.wait.outputs.result == 'FIRE'
+        run: |
+          gh workflow run enturk.yml -R "$GITHUB_REPOSITORY" --ref main -f rejim=navbatdagi_post
+          # Post tayyorlanib chiqguncha qayta-qayta ishga tushirmaslik uchun 30 daqiqa kutamiz
+          sleep 1800
+
+      - name: Navbatchini qayta ishga tushirish
+        # Qo'lda bekor qilinsa (Cancel), zanjir to'xtaydi
+        if: success() || failure()
+        run: gh workflow run keeper.yml -R "$GITHUB_REPOSITORY" --ref main
