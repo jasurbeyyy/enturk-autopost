@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import asyncio
 import logging
 import os
@@ -251,6 +252,23 @@ async def run_republish(s: Settings, draft_id: int | None) -> None:
         await tg.aclose()
 
 
+async def run_announce(s: Settings, folder: str) -> None:
+    """elon/<papka>/post.jpg + caption.html ni kanalga chiqaradi (bazaga yozmaydi)."""
+    from enturk.telegram_api import TelegramAPI
+    d = Path(folder) if Path(folder).is_absolute() else Path(__file__).resolve().parent / "elon" / folder
+    image, caption = (d / "post.jpg").read_bytes(), (d / "caption.html").read_text(encoding="utf-8").strip()
+    if not s.bot_token:
+        raise SystemExit("TELEGRAM_BOT_TOKEN kerak (GitHub Secrets)")
+    tg = TelegramAPI(s.bot_token)
+    try:
+        m = await tg.send_photo(s.channel, image, caption)
+        print(f"Kanalga chiqdi: {d.name} → {s.channel} (xabar {m['message_id']})")
+        for admin in s.admin_ids:
+            await tg.send_message(admin, f"✅ <b>E'lon kanalga chiqdi</b> ({d.name})")
+    finally:
+        await tg.aclose()
+
+
 async def list_voices(s: Settings) -> None:
     from enturk.eleven import ElevenClient
     e = ElevenClient(s.eleven_key, s.cfg["elevenlabs"]["model_id"])
@@ -275,6 +293,7 @@ def main() -> None:
     p.add_argument("--test-quiz", action="store_true", help="GitHub rejimi: sinov testlari (adminga)")
     p.add_argument("--republish", nargs="?", const="0", metavar="ID",
                    help="chiqmay qolgan postni qayta chiqarish (ID bo'lmasa — bugungi oxirgisi)")
+    p.add_argument("--announce", metavar="PAPKA", help="elon/PAPKA dagi e'lonni kanalga chiqarish")
     p.add_argument("--voices", action="store_true", help="ElevenLabs ovozlari ro'yxati")
     a = p.parse_args()
     s = load_settings()
@@ -289,6 +308,8 @@ def main() -> None:
         asyncio.run(run_slot(s, a.test, quiz_test=a.test_quiz))
     elif a.republish is not None:
         asyncio.run(run_republish(s, int(a.republish or 0) or None))
+    elif a.announce:
+        asyncio.run(run_announce(s, a.announce))
     elif a.voices:
         asyncio.run(list_voices(s))
     else:
