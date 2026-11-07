@@ -1,4 +1,4 @@
-"""Kunlik testlar: generator, tekshiruvlar va GitHub rejimi oqimi (soxta Telegram va soat bilan)."""
+"""Haftalik test: generator, tekshiruvlar va GitHub rejimi oqimi (soxta Telegram va soat bilan)."""
 import asyncio
 import json
 import random
@@ -36,8 +36,8 @@ def env(tmp_path, monkeypatch):
     s.admin_ids = [111]
     s.channel = "@jasurturktili"
     s.data_dir = tmp_path
-    # 2026-10-17 shanba, 16:07 Toshkent (testlar 17:00 da)
-    clock = Clock(datetime(2026, 10, 17, 16, 7, tzinfo=s.tz))
+    # 2026-10-18 yakshanba, 13:07 Toshkent (haftalik test 14:00 da)
+    clock = Clock(datetime(2026, 10, 18, 13, 7, tzinfo=s.tz))
     monkeypatch.setattr(oneshot, "utcnow", clock.now)
     db = DB(tmp_path / "e.db")
     return s, db, clock
@@ -82,12 +82,14 @@ def test_finalize_shuffles_but_keeps_correct_answer():
     assert len(positions) > 1
 
 
-def test_make_set_5_grammar_5_vocab(env):
+def test_make_set_10_grammar_10_vocab(env):
     s, db, clock = env
     qs = asyncio.run(quiz.make_quiz_set(s, db, FakeGemini(), now=clock.now()))
     kinds = [q["kind"] for q in qs.questions]
-    assert kinds == ["grammar"] * 5 + ["vocab"] * 5
-    assert "KUNLIK TEST — 10 ta savol" in qs.intro_caption and "@jasurturktili" in qs.intro_caption
+    assert kinds == ["grammar"] * 10 + ["vocab"] * 10
+    assert "HAFTALIK TEST — 20 ta savol" in qs.intro_caption and "20 ta" in qs.intro_caption
+    assert qs.intro_caption.rstrip().endswith('instagram.com/jasurturktili">@jasurturktili</a>')
+    assert qs.qa["design"]["layout"] == "kreativ"
     assert qs.image[:2] == b"\xff\xd8"
 
 
@@ -104,26 +106,26 @@ def test_checker_rejections_are_refilled(env):
 
     g = Strict()
     qs = asyncio.run(quiz.make_quiz_set(s, db, g, now=clock.now()))
-    assert len(qs.questions) == 10
-    assert g.calls.count("quiz_writer") == 2
+    assert len(qs.questions) == 20
+    assert g.calls.count("quiz_writer") >= 2
 
 
 # ------------------------------------------------------------------ oqim
-def test_nothing_pressed_publishes_intro_then_10_quizzes(env):
+def test_nothing_pressed_publishes_intro_then_20_quizzes(env):
     s, db, clock = env
     tg = PollTG(clock)
     assert asyncio.run(_runner(s, db, tg).run()) is True
     admin = [x for x in tg.sent if x[1] == 111]
-    assert admin[0][0] == "photo" and "KUNLIK TEST" in admin[0][2]
-    assert any(x[0] == "text" and "✅" in x[2] and "1/10" in x[2] for x in admin)   # savol-javoblar
+    assert admin[0][0] == "photo" and "HAFTALIK TEST" in admin[0][2]
+    assert any(x[0] == "text" and "✅" in x[2] and "1/20" in x[2] for x in admin)   # savol-javoblar
     ch = _channel(tg)
-    assert ch[0][0] == "photo" and "KUNLIK TEST" in ch[0][2]
+    assert ch[0][0] == "photo" and "HAFTALIK TEST" in ch[0][2]
     polls = [x for x in ch if x[0] == "poll"]
-    assert len(polls) == 10 and len(ch) == 11
-    assert polls[0][2].startswith("1/10 · 📘 Grammatika") and polls[9][2].startswith("10/10 · 📗 Kelime bilgisi")
-    assert clock.t >= datetime(2026, 10, 17, 17, 0, tzinfo=s.tz)
+    assert len(polls) == 20 and len(ch) == 21
+    assert polls[0][2].startswith("1/20 · 📘 Grammatika") and polls[19][2].startswith("20/20 · 📗 Kelime bilgisi")
+    assert clock.t >= datetime(2026, 10, 18, 14, 0, tzinfo=s.tz)
     d = db.by_status("published")[0]
-    assert d["post_type"] == quiz.QUIZ_TYPE and len(json.loads(d["qa_json"])["questions"]) == 10
+    assert d["post_type"] == quiz.QUIZ_TYPE and len(json.loads(d["qa_json"])["questions"]) == 20
     # ikkinchi ishga tushishda hech narsa qilinmaydi
     tg2 = PollTG(clock)
     assert asyncio.run(_runner(s, db, tg2).run()) is False
@@ -132,24 +134,24 @@ def test_nothing_pressed_publishes_intro_then_10_quizzes(env):
 
 def test_regen_makes_new_questions(env):
     s, db, clock = env
-    tg = PollTG(clock, script=[(datetime(2026, 10, 17, 16, 52, tzinfo=s.tz), "regen:LAST")])
+    tg = PollTG(clock, script=[(datetime(2026, 10, 18, 13, 52, tzinfo=s.tz), "regen:LAST")])
     asyncio.run(_runner(s, db, tg).run())
     photos = [x for x in tg.sent if x[1] == 111 and x[0] == "photo"]
     assert len(photos) == 2
-    rows = db.for_slot(datetime(2026, 10, 17, 17, 0, tzinfo=s.tz))
+    rows = db.for_slot(datetime(2026, 10, 18, 14, 0, tzinfo=s.tz))
     assert [r["status"] for r in rows] == ["cancelled", "published"]
     q1 = {q["question"] for q in json.loads(rows[0]["qa_json"])["questions"]}
     q2 = {q["question"] for q in json.loads(rows[1]["qa_json"])["questions"]}
     assert not q1 & q2
-    assert len([x for x in _channel(tg) if x[0] == "poll"]) == 10
+    assert len([x for x in _channel(tg) if x[0] == "poll"]) == 20
 
 
 def test_publish_now_button(env):
     s, db, clock = env
-    tg = PollTG(clock, script=[(datetime(2026, 10, 17, 16, 51, tzinfo=s.tz), "now:LAST")])
+    tg = PollTG(clock, script=[(datetime(2026, 10, 18, 13, 51, tzinfo=s.tz), "now:LAST")])
     asyncio.run(_runner(s, db, tg).run())
-    assert len(_channel(tg)) == 11
-    assert clock.t < datetime(2026, 10, 17, 17, 0, tzinfo=s.tz)
+    assert len(_channel(tg)) == 21
+    assert clock.t < datetime(2026, 10, 18, 14, 0, tzinfo=s.tz)
 
 
 def test_test_mode_goes_to_admin_only(env):
@@ -157,7 +159,7 @@ def test_test_mode_goes_to_admin_only(env):
     tg = PollTG(clock)
     asyncio.run(_runner(s, db, tg).run(test=True))
     assert _channel(tg) == []
-    assert len([x for x in tg.sent if x[1] == 111 and x[0] == "poll"]) == 10
+    assert len([x for x in tg.sent if x[1] == 111 and x[0] == "poll"]) == 20
     assert db.by_status("cancelled")
 
 
@@ -165,13 +167,13 @@ def test_slot_dispatch_picks_quiz_not_post(env):
     s, db, clock = env
     tg = PollTG(clock)
     posts = SlotRunner(s, db, Pipeline(s, db, FakeGemini(), FakeEleven()), tg)
-    # 13:00 posti chiqib bo'lgan → 16:07 da post yo'q, test bor
-    did = db.create_draft(slot_at=datetime(2026, 10, 17, 13, 0, tzinfo=s.tz), post_type="x", lang="tr")
+    # 10:00 posti chiqib bo'lgan → 13:07 da post yo'q, test bor
+    did = db.create_draft(slot_at=datetime(2026, 10, 18, 10, 0, tzinfo=s.tz), post_type="x", lang="tr")
     db.update(did, status="published")
     assert posts.find_slot(clock.now()) is None
     assert _runner(s, db, tg).find_slot(clock.now()) is not None
     db.update(did, status="cancelled")
-    clock.t = datetime(2026, 10, 17, 12, 7, tzinfo=s.tz)  # 13:00 posti vaqti
+    clock.t = datetime(2026, 10, 18, 9, 7, tzinfo=s.tz)  # 10:00 posti vaqti
     assert posts.find_slot(clock.now()) is not None
     assert _runner(s, db, tg).find_slot(clock.now()) is None
 
@@ -200,7 +202,7 @@ def test_solver_disagreement_rejects_question(env):
 
     g = WrongSolver()
     qs = asyncio.run(quiz.make_quiz_set(s, db, g, now=clock.now()))
-    assert len(qs.questions) == 10
+    assert len(qs.questions) == 20
     assert qs.qa["rejected"] >= 2
 
 
@@ -248,3 +250,11 @@ def test_emojis_on_questions_options_and_explanations(env):
     c = quiz.clean_question({"kind": "vocab", "question": "🔤 X?\nY", "options": ["🍞 ekmek", "su 💧", "et", "süt"],
                              "correct": "🍞 ekmek", "explanation": "e"})
     assert c["options"][:2] == ["ekmek", "su"] and c["correct"] == "ekmek"
+
+
+def test_quiz_only_once_a_week(env):
+    s, db, clock = env
+    r = _runner(s, db, PollTG(clock))
+    found = [d for d in range(7)
+             if r.find_slot(datetime(2026, 10, 19 + d, 13, 7, tzinfo=s.tz)) is not None]
+    assert found == [6]          # faqat yakshanba (2026-10-25)

@@ -138,6 +138,13 @@ class DB:
         return self._rows("SELECT * FROM drafts WHERE slot_at=? AND is_test=0 ORDER BY id", (iso(slot_at),))
 
     # ---------- tarix (agentlar uchun) ----------
+    def published_types(self, *, days: int = 21, exclude: tuple[str, ...] = ("kunlik_test",)) -> list[str]:
+        """Kanalga chiqqan postlar turlari (eng yangisi birinchi) — aylanma jadval uchun."""
+        since = iso(_now() - timedelta(days=days))
+        rows = self._rows("SELECT post_type FROM drafts WHERE created_at>=? AND status='published' "
+                          "AND is_test=0 ORDER BY slot_at DESC, id DESC", (since,))
+        return [r["post_type"] for r in rows if r["post_type"] not in exclude]
+
     def recent(self, *, days: int, post_type: str | None = None, lang: str | None = None,
                include_tests: bool = False) -> list[dict]:
         since = iso(_now() - timedelta(days=days))

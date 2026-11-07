@@ -97,12 +97,12 @@ def coord(tmp_path, monkeypatch):
 
 
 def _slot(coord):
-    # keyingi dushanba 08:00 — yangi_sozlar
+    # keyingi dushanba 10:00
     from datetime import datetime
     from enturk import planner
     now = botmod.utcnow()
     for i in range(8):
-        cand = planner.next_slot_after(now + timedelta(days=i), "08:00", coord.s.tz)
+        cand = planner.next_slot_after(now + timedelta(days=i), "10:00", coord.s.tz)
         if cand.weekday() == 0:
             return cand
     raise AssertionError
@@ -128,7 +128,7 @@ def test_normal_flow_publishes_on_time(coord):
         assert coord.db.get(did)["status"] == "published"
         channel = [x for x in coord.app.bot.sent if x[1] == "@jasurturktili"]
         assert [x[0] for x in channel] == ["photo", "audio"]
-        assert "👉 @jasurturktili" in channel[0][2]
+        assert channel[0][2].rstrip().endswith("instagram.com/jasurturktili\">@jasurturktili</a>")
     asyncio.run(go())
 
 

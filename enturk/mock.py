@@ -108,6 +108,9 @@ class FakeGemini:
                     "audio_title": "Oshxonada — 10 ta yangi so'z", "items": [w for w, _ in WORDS],
                     "image_brief": "a bright Turkish kitchen with a copper pot, pan and tea glasses",
                     "visual": {"emojis": ["🍳", "🥘", "🔪", "🧊"], "scene": "tea"}}, []
+        if "ART DIRECTOR" in system:
+            self.calls.append("design")
+            return dict(MOCK_DESIGN), []
         if "QUALITY CONTROL" in system:
             self.calls.append("qa")
             return {"verdict": "pass", "issues": [], "caption_html": None, "audio": None, "score": 9}, []
@@ -143,3 +146,26 @@ class FakeEleven:
         b = io.BytesIO()
         seg.export(b, format="mp3")
         return b.getvalue()
+
+
+MOCK_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350">'
+    '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB86B"/>'
+    '<stop offset="1" stop-color="#F25C54"/></linearGradient></defs>'
+    '<rect width="1080" height="1350" fill="url(#sky)"/>'
+    '<circle cx="760" cy="760" r="260" fill="#FFE3A3" opacity=".7"/>'
+    + "".join(f'<rect x="{90 + i * 120}" y="{900 - (i % 4) * 70}" width="100" height="{450 + (i % 4) * 70}" '
+              f'rx="12" fill="#5B2A86" opacity="{0.6 + (i % 3) * 0.12:.2f}"/>' for i in range(8))
+    + "".join(f'<circle cx="{150 + i * 110}" cy="{1180 - (i % 3) * 30}" r="{28 + (i % 4) * 6}" fill="#2D1E2F"/>'
+              for i in range(9))
+    + '<path d="M0 1200 Q540 1100 1080 1200 L1080 1350 L0 1350 Z" fill="#2D1E2F"/>'
+    + "".join(f'<ellipse cx="{200 + i * 140}" cy="{760 + (i % 2) * 40}" rx="40" ry="18" fill="#FFFFFF" '
+              f'opacity=".5"/>' for i in range(6))
+    + '</svg>')
+
+MOCK_DESIGN = {
+    "concept": "sunset street with tall houses (mock)",
+    "palette": {"bg": "#F25C54", "ink": "#2D1E2F", "accent": "#5B2A86", "soft": "#FFF4E6"},
+    "font": "Archivo Black", "text_box": {"x": 60, "y": 80, "w": 900, "h": 420}, "align": "left",
+    "tilt": -2, "plate": "rounded", "kicker_style": "pill", "logo_corner": "br", "svg": MOCK_SVG}
+

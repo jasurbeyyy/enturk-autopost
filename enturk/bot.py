@@ -93,9 +93,10 @@ class Coordinator:
         if self.db.active_for_slot(slot):
             log.info("%s uchun post allaqachon bor", slot)
             return
-        pt = self.s.post_type(entry["type"])
-        draft_id = self.db.create_draft(slot_at=slot, post_type=entry["type"], lang=pt.get("lang", "tr"))
-        log.info("Tayyorlash boshlandi: #%s %s %s", draft_id, entry["type"], slot)
+        ptype = planner.choose_type(self.s.cfg, entry, self.db.published_types(), slot)
+        pt = self.s.post_type(ptype)
+        draft_id = self.db.create_draft(slot_at=slot, post_type=ptype, lang=pt.get("lang", "tr"))
+        log.info("Tayyorlash boshlandi: #%s %s %s", draft_id, ptype, slot)
         self.app.create_task(self.produce(draft_id))
 
     async def produce(self, draft_id: int, avoid: list[str] | None = None,
@@ -369,7 +370,8 @@ class Coordinator:
                 continue
             rows = self.db.for_slot(slot)
             st = icons.get(rows[-1]["status"], rows[-1]["status"]) if rows else "—"
-            lines.append(f"{hhmm} · {html.escape(self.s.post_type(e['type'])['title'])} · {st}")
+            t = rows[-1]["post_type"] if rows else e["type"]
+            lines.append(f"{hhmm} · {html.escape(planner.type_title(self.s.cfg, t))} · {st}")
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
     async def cmd_schedule(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
@@ -380,7 +382,7 @@ class Coordinator:
             items = self.s.cfg["weekly"].get(day, [])
             out.append(f"<b>{planner.DAY_NAMES_UZ[i]}</b>")
             for e in items:
-                out.append(f"  {e['time']} — {html.escape(self.s.post_type(e['type'])['title'])}")
+                out.append(f"  {e['time']} — {html.escape(planner.type_title(self.s.cfg, e['type']))}")
         await update.message.reply_text("\n".join(out), parse_mode=ParseMode.HTML)
 
     async def cmd_test(self, update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:

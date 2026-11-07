@@ -108,19 +108,46 @@ def strip_footer_like(html: str) -> str:
             continue
         if ("@jasurturktili" in plain or "@EnTurk_CSR" in plain) and len(plain) < 40:
             continue
+        if ("t.me/" in line or "instagram.com" in line) and len(plain) < 60:
+            continue
         keep.append(line)
     return "\n".join(keep)
 
 
-def build_footer(audio_line: str | None, signature: str, hashtags: list[str]) -> str:
+def _handle(url: str) -> str:
+    return "@" + url.rstrip("/").rsplit("/", 1)[-1].lstrip("@")
+
+
+def links_block(links: dict | None) -> str:
+    """Post oxiridagi Telegram va Instagram havolalari (HTML)."""
+    if not links:
+        return ""
+    out = []
+    if links.get("telegram"):
+        u = links["telegram"]
+        out.append(f'✈️ Telegram: <a href="{escape(u, quote=True)}">{escape(_handle(u), quote=False)}</a>')
+    if links.get("instagram"):
+        u = links["instagram"]
+        out.append(f'📸 Instagram: <a href="{escape(u, quote=True)}">{escape(_handle(u), quote=False)}</a>')
+    return "\n".join(out)
+
+
+def build_footer(audio_line: str | None, signature: str, hashtags: list[str],
+                 links: dict | None = None) -> str:
+    """Post oxiri: audio qatori, xeshteglar va eng oxirida Telegram + Instagram havolalari.
+    Havolalar berilsa, imzo (@kanal) alohida yozilmaydi — u Telegram havolasida bor."""
     lines = []
     if audio_line:
-        lines.append(audio_line)
-    lines.append(signature)
+        lines.append(escape(audio_line, quote=False))
+    block = links_block(links)
+    if not block:
+        lines.append(escape(signature, quote=False))
     tags = " ".join("#" + re.sub(r"[^\w]", "", t) for t in hashtags if t)
     if tags:
-        lines.append(tags)
-    return "\n".join(escape(x, quote=False) for x in lines)
+        lines.append(escape(tags, quote=False))
+    if block:
+        lines.append(block)
+    return "\n".join(lines)
 
 
 def norm_item(s: str) -> str:

@@ -41,5 +41,7 @@ def test_revision_loop(tmp_path):
     assert g.writer_calls == 2          # 1-marta uzun → validator qaytardi → qayta yozildi
     assert g.qa_calls == 1
     assert "ocağın üstünde" in r.caption_html   # QA tuzatishi qabul qilindi
-    assert r.caption_html.rstrip().endswith("#yangi_sozlar #" + r.level)
+    assert "#yangi_sozlar #" + r.level in r.caption_html
+    assert r.caption_html.rstrip().endswith('instagram.com/jasurturktili">@jasurturktili</a>')
+    assert r.qa["design"]["layout"] == "kreativ" and r.image[:2] == b"\xff\xd8"
     assert r.image[:2] == b"\xff\xd8" and len(r.audio) > 1000

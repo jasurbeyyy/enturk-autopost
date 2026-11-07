@@ -1,8 +1,8 @@
-"""GitHub Actions rejimi: kunlik testlar uchun to'liq sikl.
+"""GitHub Actions rejimi: haftalik test uchun to'liq sikl.
 
   tayyorlash → (vaqtidan 10 daqiqa oldin) adminga savol-javoblar → tugmalarni kutish
   → 🔄 bosilsa: yangi testlar → yana ko'rsatish
-  → hech narsa bosilmasa yoki ✅ bosilsa: kanalga kirish posti + 10 ta quiz
+  → hech narsa bosilmasa yoki ✅ bosilsa: kanalga kirish posti + 20 ta quiz
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ class QuizRunner(SlotRunner):
     # ---------- matnlar ----------
     def quiz_control_text(self, d: dict, qs: QuizSet, pub: datetime | None, note: str = "") -> str:
         slot = parse_iso(d["slot_at"]).astimezone(self.s.tz)
-        head = "🧪 <b>SINOV TESTLARI</b> — avtomatik chiqmaydi" if d["is_test"] else "🧠 <b>Kunlik testlar</b>"
+        head = "🧪 <b>SINOV TESTLARI</b> — avtomatik chiqmaydi" if d["is_test"] else "🧠 <b>Haftalik test</b>"
         lines = [head,
                  f"🗓 {planner.DAY_NAMES_UZ[slot.weekday()]}, {slot:%H:%M} · {qs.level} · "
                  f"{len(qs.questions)} ta savol",
@@ -83,7 +83,7 @@ class QuizRunner(SlotRunner):
             if slot is None:
                 log.info("Yaqin orada chiqarilmagan test yo'q")
                 return False
-        log.info("Kunlik testlar, vaqti %s", slot.astimezone(self.s.tz))
+        log.info("Haftalik test, vaqti %s", slot.astimezone(self.s.tz))
         await self._skip_old_updates()
 
         parent: int | None = None
@@ -111,7 +111,7 @@ class QuizRunner(SlotRunner):
                 continue
             level = qs.level
             self.db.update(did, level=qs.level, topic=f"{qs.grammar_focus} | {qs.vocab_theme}",
-                           title="Kunlik test", caption=qs.intro_caption, items=qs.keys, qa=qs.to_json(),
+                           title="Haftalik test", caption=qs.intro_caption, items=qs.keys, qa=qs.to_json(),
                            status="ready")
             d = self.db.get(did)
 

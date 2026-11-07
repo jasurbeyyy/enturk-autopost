@@ -13,6 +13,10 @@ preview_minutes_before: 10
 late_publish_grace_minutes: 180
 
 signature: "👉 @jasurturktili"
+# Har bir post matni oxirida chiqadigan havolalar
+links:
+  telegram: "https://t.me/jasurturktili"
+  instagram: "https://instagram.com/jasurturktili"
 
 # ---------------- Modellar ----------------
 models:
@@ -22,8 +26,11 @@ models:
     - gemini-3.6-flash
     - gemini-3.5-flash
     - gemini-3.5-flash-lite
-  # 3-agent: rasm. "grafika" — Gemini'siz, kod chizadi (bepul). "gemini" — Nano Banana illustratsiya (billing kerak)
-  image_mode: grafika
+  # 3-agent: rasm.
+  #   "kreativ" — har bir postga yangi dizayn: Gemini matn modeli SVG illyustratsiya chizadi, kod sarlavha
+  #               va logoni qo'yadi (rasm modeli va billing kerak emas). Ishlamasa "grafika"ga o'tadi.
+  #   "grafika" — eski kod maketlari (Gemini'siz). "gemini" — Nano Banana illustratsiya (billing kerak)
+  image_mode: kreativ
   image: gemini-3.1-flash-image
   image_aspect: "4:5"
   image_size: "1K"
@@ -43,7 +50,7 @@ brand:
   white: "#FFFFFF"
   band_height: 150
 
-# Rasm uchun Turkiya motivlari (har safar biri tanlanadi)
+# Rasm uchun Turkiya motivlari (eski "gemini" rasm rejimi uchun) (har safar biri tanlanadi)
 motifs_tr:
   - Istanbul skyline with Galata Tower and mosque silhouettes at golden hour
   - Bosphorus with white ferries and seagulls
@@ -58,16 +65,16 @@ motifs_tr:
   - Turkish carpet and kilim patterns
   - Turkish coffee with lokum on a copper tray
 
-# ---------------- Kunlik testlar (Telegram quiz) ----------------
-# Har kuni: avval "Test vaqti" posti, ketidan quizlar (QuizBot uslubida).
-# Vaqtni o'zgartirsangiz, .github/workflows/enturk.yml'dagi cron'ni ham moslang (vaqt − 5 soat − ~50 daqiqa, UTC).
+# ---------------- Haftalik test (Telegram quiz) ----------------
+# Haftada 1 marta: avval "Haftalik test" posti, ketidan 20 ta quiz (QuizBot uslubida).
+# Kun va vaqtni shu yerda o'zgartirish kifoya (cron'ga tegish shart emas).
 quiz:
   enabled: true
-  time: "17:00"
-  days: [mon, tue, wed, thu, fri, sat, sun]
-  grammar: 5            # grammatika savollari soni
-  vocab: 5              # kelime bilgisi savollari soni
-  levels: [A1, A2, B1, B2]   # har kuni navbatdagi daraja
+  time: "14:00"
+  days: [sun]
+  grammar: 10           # grammatika savollari soni
+  vocab: 10             # kelime bilgisi savollari soni
+  levels: [A1, A2, B1, B2]   # har hafta navbatdagi daraja
   poll_interval_seconds: 3   # quizlar orasidagi pauza
   hashtag: test
 
@@ -160,32 +167,33 @@ post_types:
       Audio: the correct Turkish answers.
 
 # ---------------- Haftalik jadval ----------------
+# Kuniga 2 ta post. "auto" — post turi aylanib turadi (pastdagi rotation ro'yxatidan):
+# oxirgi 2 ta postning turi takrorlanmaydi, qolganlaridan eng kam chiqqani olinadi.
+# Biror vaqtga aniq tur kerak bo'lsa, auto o'rniga tur nomini yozing (masalan imtihon).
 weekly:
   mon:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: kunlik_iboralar}
-    - {time: "20:00", type: mavzuli_lugat}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
   tue:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: haqiqiy_diolog}
-    - {time: "20:00", type: hayotiy_maslahat}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
   wed:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: haqiqiy_diolog}
-    - {time: "20:00", type: imtihon}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
   thu:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: kunlik_iboralar}
-    - {time: "20:00", type: mavzuli_lugat}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
   fri:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: kunlik_iboralar}
-    - {time: "20:00", type: hayotiy_maslahat}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
   sat:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: mavzuli_lugat}
-    - {time: "20:00", type: imtihon}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
   sun:
-    - {time: "08:00", type: yangi_sozlar}
-    - {time: "13:00", type: haqiqiy_diolog}
-    - {time: "20:00", type: haftalik_takrorlash}
+    - {time: "10:00", type: auto}
+    - {time: "18:00", type: auto}
+
+# Aylanma post turlari (faqat turk tili)
+rotation:
+  types: [yangi_sozlar, haqiqiy_diolog, kunlik_iboralar, hayotiy_maslahat, mavzuli_lugat, imtihon]
+  no_repeat: 2
