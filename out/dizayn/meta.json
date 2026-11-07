@@ -1,0 +1,62 @@
+[
+ {
+  "layout": "kreativ",
+  "direction": "duotone composition: only two strong colours plus white, big simple silhouettes",
+  "placement": "bottom",
+  "font": "Montserrat",
+  "concept": "Duotone architectural cutout silhouettes of apartment keys, a building facade, and a contract document symbolizing renting a home in Turkey.",
+  "bg": "#0f2c59",
+  "logo": "tr",
+  "problems": []
+ },
+ {
+  "layout": "kreativ",
+  "direction": "one giant hero object seen close-up and boldly cropped by the frame edge",
+  "placement": "center",
+  "font": "Sora",
+  "concept": "A giant close-up stylized medicine pill bottle with a glowing cross emerges from a vibrant soft-mint and peach atmosphere, framing the central text area.",
+  "bg": "#e6f2f0",
+  "logo": "tr",
+  "problems": []
+ },
+ {
+  "layout": "kreativ",
+  "direction": "scale play: a tiny person next to a huge object of the topic",
+  "placement": "top",
+  "font": "Bricolage Grotesque",
+  "concept": "A whimsical surreal illustration where a giant corrugated cardboard delivery box and a winged envelope dominate the scene, with a tiny courier holding a tiny clipboard standing at the base.",
+  "bg": "#121826",
+  "logo": "br",
+  "problems": []
+ },
+ {
+  "layout": "kreativ",
+  "direction": "Swiss modernist poster: a few huge flat geometric shapes that together form the subject, strict grid, lots of breathing space",
+  "placement": "left",
+  "font": "Outfit",
+  "concept": "Swiss modernist poster layout depicting a minimalist post box and shipping envelope using bold flat geometric shapes on a warm ochre background.",
+  "bg": "#f4ede2",
+  "logo": "br",
+  "problems": []
+ },
+ {
+  "layout": "kreativ",
+  "direction": "abstract organic: large fluid blobs in harmonious colours with one recognisable object in the middle",
+  "placement": "top-left",
+  "font": "Playfair Display",
+  "concept": "Large fluid organic blobs in terracotta and teal tones surround a stylized utility meter symbol in the center, representing Turkish utility contracts.",
+  "bg": "#f5f2eb",
+  "logo": "br",
+  "problems": []
+ },
+ {
+  "layout": "kreativ",
+  "direction": "magazine cover: a large subject on a bold background, overlapping a clean empty band for the headline",
+  "placement": "right",
+  "font": "Space Grotesk",
+  "concept": "Editorial magazine cover with a modern minimalist pharmacy theme, featuring stylized medical items like a thermometer, medicine bottle, and ointment tube arranged artistically on the left, leaving the",
+  "bg": "#e8f0ec",
+  "logo": "bl",
+  "problems": []
+ }
+]
