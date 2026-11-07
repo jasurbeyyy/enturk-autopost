@@ -84,13 +84,16 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'dizayn_namunalari'
         run: python main.py --design-samples 6
 
-      - name: Dizayn namunalarini yuklab olish uchun saqlash
+      - name: Dizayn namunalarini "dizayn-namunalari" tarmog'iga saqlash
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'dizayn_namunalari'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dizayn-namunalari
-          path: out/dizayn/
-          retention-days: 7
+        run: |
+          git config user.name "enturk-bot"
+          git config user.email "enturk-bot@users.noreply.github.com"
+          git checkout --orphan dizayn-tmp
+          git rm -rq --cached .
+          git add -f out/dizayn
+          git commit -qm "Dizayn namunalari [skip ci]"
+          git push -qf origin HEAD:dizayn-namunalari
 
       - name: Chiqmay qolgan postni qayta chiqarish
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'qayta_chiqarish'
