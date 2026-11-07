@@ -80,8 +80,8 @@ class Pipeline:
 
     def _recent_visuals(self) -> dict:
         """Kanaldagi oxirgi postlarning maketi va sahnasi (ketma-ket takrorlamaslik uchun)."""
-        layouts, scenes, themes, footers = [], [], [], []
-        for r in self.db.recent(days=14):
+        layouts, scenes, themes, footers, designs = [], [], [], [], []
+        for r in self.db.recent(days=21):
             try:
                 q = json.loads(r.get("qa_json") or "{}")
             except json.JSONDecodeError:
@@ -90,8 +90,10 @@ class Pipeline:
             scenes.append(q.get("scene"))
             themes.append(q.get("theme"))
             footers.append(q.get("footer"))
+            if isinstance(q.get("design"), dict):
+                designs.append(q["design"])
         return {"recent_layouts": layouts, "recent_scenes": scenes, "recent_themes": themes,
-                "recent_footers": footers}
+                "recent_footers": footers, "recent_designs": designs}
 
     # ---------- asosiy ----------
     async def run(self, type_key: str, *, now: datetime, avoid_topics: list[str] | None = None,
@@ -104,7 +106,7 @@ class Pipeline:
         style = planner.pick_style(s.styles, type_key, ctx["recent_styles"], exclude=exclude_style)
         exam = planner.pick_least_used(pt["exams"], ctx["recent_exams"]) if pt.get("exams") else None
         footer = cap.build_footer(pt.get("audio_line") if s.audio_enabled else None, s.cfg["signature"],
-                                  [pt.get("hashtag", type_key), level])
+                                  [pt.get("hashtag", type_key), level], links=s.cfg.get("links"))
         _, footer_text = cap.sanitize(footer)
         body_limit = cap.CAPTION_LIMIT - cap.visible_len(footer_text) - 30
         avoid = list(avoid_topics or [])
@@ -195,7 +197,9 @@ class Pipeline:
             sublabel=sublabel, items=draft.get("items"), post_type=type_key, style_id=style["id"],
             visual=draft.get("visual"), lines=draft.get("audio"),
             recent_layouts=ctx["recent_layouts"], recent_scenes=ctx["recent_scenes"],
-            recent_themes=ctx["recent_themes"], recent_footers=ctx["recent_footers"])
+            recent_themes=ctx["recent_themes"], recent_footers=ctx["recent_footers"],
+            recent_designs=ctx["recent_designs"], rubric=pt["title"], level=level,
+            summary="; ".join(str(i) for i in (draft.get("items") or [])[:10]))
         if s.audio_enabled:
             audio_task = voice.synthesize(
                 self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,
@@ -207,7 +211,8 @@ class Pipeline:
         qa_meta = {"verdict": qa_result.get("verdict"), "score": qa_result.get("score"),
                    "issues": qa_result.get("issues", []), "exam": exam,
                    "layout": visual_meta.get("layout"), "scene": visual_meta.get("scene"),
-                   "theme": visual_meta.get("theme"), "footer": visual_meta.get("footer")}
+                   "theme": visual_meta.get("theme"), "footer": visual_meta.get("footer"),
+                   "design": visual_meta.get("design")}
         return PostResult(
             post_type=type_key, lang=lang, level=level, style_id=style["id"],
             topic=str(draft.get("topic") or res.get("topic")), title=str(draft.get("title", "")),

@@ -13,7 +13,7 @@ on:
         description: "Nima qilamiz?"
         type: choice
         default: sinov_posti
-        options: [sinov_posti, sinov_testi, test_tahlili, navbatdagi_post, qayta_chiqarish, elon, tekshirish, ovozlar]
+        options: [sinov_posti, sinov_testi, test_tahlili, dizayn_namunalari, navbatdagi_post, qayta_chiqarish, elon, tekshirish, ovozlar]
       tur:
         description: "Sinov posti turi"
         type: choice
@@ -80,6 +80,21 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'test_tahlili'
         run: python main.py --dry-run kunlik_test
 
+      - name: Dizayn namunalari (Telegram'ga yubormaydi)
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'dizayn_namunalari'
+        run: python main.py --design-samples 6
+
+      - name: Dizayn namunalarini "dizayn-namunalari" tarmog'iga saqlash
+        if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'dizayn_namunalari'
+        run: |
+          git config user.name "enturk-bot"
+          git config user.email "enturk-bot@users.noreply.github.com"
+          git checkout --orphan dizayn-tmp
+          git rm -rq --cached .
+          git add -f out/dizayn
+          git commit -qm "Dizayn namunalari [skip ci]"
+          git push -qf origin HEAD:dizayn-namunalari
+
       - name: Chiqmay qolgan postni qayta chiqarish
         if: github.event_name == 'workflow_dispatch' && inputs.rejim == 'qayta_chiqarish'
         env:
@@ -102,7 +117,7 @@ jobs:
 
       - name: Tarixni saqlash (takrorlanmaslik uchun)
         # e'lon rejimi bazani o'zgartirmaydi va boshqa ishga tushirishlar bilan parallel ishlaydi
-        if: always() && inputs.rejim != 'elon'
+        if: always() && inputs.rejim != 'elon' && inputs.rejim != 'dizayn_namunalari'
         run: |
           git config user.name "enturk-bot"
           git config user.email "enturk-bot@users.noreply.github.com"

@@ -6,3 +6,4 @@ pydub>=0.25
 audioop-lts>=0.2; python_version >= "3.13"
 python-dotenv>=1.0
 tzdata>=2024.1
+resvg-py>=0.5

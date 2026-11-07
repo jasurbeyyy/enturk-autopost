@@ -93,9 +93,44 @@ def test_every_post_type_has_styles_and_schedule_valid():
     for key in s.cfg["post_types"]:
         assert len(planner.styles_for(s.styles, key)) >= 2, key
     for day, items in s.cfg["weekly"].items():
-        assert len(items) == 3, day
+        assert [e["time"] for e in items] == ["10:00", "18:00"], day
         for e in items:
-            assert e["type"] in s.cfg["post_types"], e
+            assert e["type"] == planner.AUTO or e["type"] in s.cfg["post_types"], e
+    for t in s.cfg["rotation"]["types"]:
+        assert t in s.cfg["post_types"], t
     # faqat turk tili: inglizcha post turlari ham, jadvalda ham yo'q
     assert not any(k.startswith("en_") for k in s.cfg["post_types"])
     assert all(pt.get("lang", "tr") == "tr" for pt in s.cfg["post_types"].values())
+
+
+def test_rotation_varies_and_never_repeats_last_two():
+    from datetime import datetime, timedelta, timezone
+    from enturk.settings import load_settings
+    cfg = load_settings().cfg
+    rot = cfg["rotation"]["types"]
+    history: list[str] = []
+    t0 = datetime(2026, 11, 9, 5, tzinfo=timezone.utc)
+    for i in range(36):
+        t = planner.choose_type(cfg, {"type": "auto"}, history, t0 + timedelta(hours=12 * i))
+        assert t in rot
+        assert t not in history[:2]
+        history.insert(0, t)
+    counts = {t: history.count(t) for t in rot}
+    assert min(counts.values()) >= 5 and max(counts.values()) <= 7, counts   # teng taqsimlanadi
+    # aniq tur yozilgan bo'lsa — o'sha
+    assert planner.choose_type(cfg, {"type": "imtihon"}, ["imtihon"]) == "imtihon"
+
+
+def test_footer_has_telegram_and_instagram_links_at_end():
+    from enturk import caption as cap
+    links = {"telegram": "https://t.me/jasurturktili", "instagram": "https://instagram.com/jasurturktili"}
+    f = cap.build_footer(None, "👉 @jasurturktili", ["yangi_sozlar", "A1"], links=links)
+    lines = f.split("\n")
+    assert lines[-2].startswith("✈️ Telegram") and 'href="https://t.me/jasurturktili"' in lines[-2]
+    assert lines[-1].startswith("📸 Instagram") and 'href="https://instagram.com/jasurturktili"' in lines[-1]
+    assert "#yangi_sozlar #A1" in f
+    html, text = cap.sanitize(f)
+    assert 'href="https://instagram.com/jasurturktili"' in html and "@jasurturktili" in text
+    # yozuvchi o'zi qo'shgan havolalar takrorlanmaydi
+    body = "Matn\n📸 Instagram: <a href=\"https://instagram.com/jasurturktili\">@jasurturktili</a>"
+    assert "instagram" not in cap.strip_footer_like(body).lower()

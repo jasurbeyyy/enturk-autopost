@@ -101,3 +101,51 @@ def test_themes_keep_white_text_readable():
         return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2]
     for name, t in g.THEMES.items():
         assert (1.05) / (lum(t["main"]) + 0.05) >= 3.5, name     # oq sarlavha asosiy rang ustida
+
+
+def test_creative_design_svg_is_sanitized_and_composed(tmp_path):
+    import asyncio
+    from PIL import Image
+    import io
+    from enturk import design
+    from enturk.mock import MOCK_DESIGN
+    svg = MOCK_DESIGN["svg"].replace("</svg>", '<text x="9" y="9">YOZUV</text><script>x()</script></svg>')
+    clean, n = design.sanitize_svg(svg)
+    assert "<text" not in clean and "<script" not in clean and n >= 12
+
+    class G:
+        calls = 0
+
+        async def generate_json(self, system, prompt, **kw):
+            G.calls += 1
+            assert "ART DIRECTOR" in system and "NO repeating patterns" in system
+            return dict(MOCK_DESIGN, text_box={"x": 700, "y": 1100, "w": 900, "h": 900}), []
+
+    jpg, meta = asyncio.run(design.design(
+        G(), title="TURKİYADA UY IJARAGA OLISH", rubric="Kunlik iboralar", level="B2", summary="",
+        brief="renting a flat", words=["kira", "ev sahibi"], kicker="Kunlik iboralar · B2",
+        logo_path=design.ASSETS / "logo_white.png", recent=[], seed=1))
+    im = Image.open(io.BytesIO(jpg))
+    assert im.size == (1080, 1350) and meta["layout"] == "kreativ" and G.calls == 1
+    assert design.smart_case("TURKİYADA UY IJARAGA OLISH") == "Turkiyada uy ijaraga olish"
+
+
+def test_design_brief_rotates_directions_and_placements():
+    import random
+    from enturk import design
+    recent, seen_dirs, seen_places = [], [], []
+    for i in range(8):
+        d, p, fonts = design.choose_brief(recent, random.Random(i))
+        assert d not in seen_dirs and len(fonts) == 5
+        if seen_places:
+            assert p != seen_places[-1]
+        seen_dirs.append(d)
+        seen_places.append(p)
+        recent.insert(0, {"direction": d, "placement": p, "font": fonts[0]})
+
+
+def test_image_words_only_short_items():
+    from enturk import design
+    assert design.image_words(["eczane — dorixona", "ilaç", "reçete (retsept)"], "yangi_sozlar") == \
+        ["eczane", "ilaç", "reçete"]
+    assert design.image_words(["eczane", "ilaç"], "imtihon") == []

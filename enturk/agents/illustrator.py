@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-from .. import graphics
+from .. import design, graphics
 from ..gemini import GeminiClient
 from . import qa
 
@@ -75,9 +75,26 @@ async def illustrate(gemini: GeminiClient, *, cfg: dict, root: Path, lang: str, 
                      recent_layouts: list[str] | None = None,
                      recent_scenes: list[str] | None = None,
                      recent_themes: list[str] | None = None,
-                     recent_footers: list[str] | None = None) -> tuple[bytes, dict]:
-    """Rasm yaratadi. (jpeg_baytlar, {"layout", "scene", "theme", "footer", ...}) qaytaradi."""
+                     recent_footers: list[str] | None = None,
+                     recent_designs: list[dict] | None = None, rubric: str = "", level: str = "",
+                     summary: str = "") -> tuple[bytes, dict]:
+    """Rasm yaratadi. (jpeg_baytlar, {"layout", "scene", "theme", "footer", ...}) qaytaradi.
+
+    image_mode: "kreativ" (standart) — har bir postga yangi, qolipsiz dizayn (design.py);
+    ishlamasa "grafika" (eski kod maketlari) zaxira sifatida chiziladi."""
     band = int(cfg["brand"].get("band_height", 150))
+    mode = cfg["models"].get("image_mode", "kreativ")
+    if mode == "kreativ":
+        try:
+            jpg, meta = await design.design(
+                gemini, title=graphics.clean_title(topic) or rubric or label, rubric=rubric or label.title(),
+                level=level, summary=summary, brief=brief, words=design.image_words(items, post_type),
+                kicker=f"{rubric or label.title()} · {level}".strip(" ·"),
+                logo_path=root / "assets" / "logo_white.png", recent=recent_designs or [],
+                check=(lambda img, **kw: qa.check_image(gemini, img, **kw)) if check else None)
+            return jpg, {"layout": "kreativ", "scene": None, "theme": None, "footer": None, "design": meta}
+        except Exception as exc:  # noqa: BLE001 — post baribir chiqishi kerak
+            log.warning("Kreativ dizayn ishlamadi, zaxira grafika chiziladi: %s", str(exc)[:300])
     footer = graphics.choose_footer(recent_footers or [], random.Random(f"{topic}|{post_type}|{style_id}"))
 
     def finish(raw: bytes, theme: str) -> bytes:
@@ -92,7 +109,7 @@ async def illustrate(gemini: GeminiClient, *, cfg: dict, root: Path, lang: str, 
         meta["footer"] = footer
         return finish(_png(img), meta["theme"]), meta
 
-    if cfg["models"].get("image_mode", "grafika") != "gemini":
+    if mode != "gemini":
         return code_graphic()
 
     motifs = cfg.get("motifs_tr") or []

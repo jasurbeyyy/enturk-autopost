@@ -284,6 +284,49 @@ async def list_voices(s: Settings) -> None:
         print(f"{v.get('name', '')[:27]:28} {v.get('voice_id', ''):24} {desc}")
 
 
+async def design_samples(s: Settings, n: int) -> None:
+    """Kreativ dizayn namunalari: oxirgi postlar mavzularida N ta rasm chizib out/dizayn/ ga saqlaydi.
+    Telegram'ga hech narsa yubormaydi, bazani o'zgartirmaydi."""
+    import json as _json
+    from enturk import design, graphics
+    from enturk.agents import qa
+    from enturk.db import DB
+    gemini, eleven = clients(s)
+    db = DB(s.data_dir / "enturk.db")
+    rows = [r for r in db.recent(days=40) if r["post_type"] in s.cfg["post_types"] and r.get("topic")]
+    out = ROOT / "out" / "dizayn"
+    out.mkdir(parents=True, exist_ok=True)
+    recent: list[dict] = []
+    done = 0
+    try:
+        for i, r in enumerate(rows[: n * 2]):
+            if done >= n:
+                break
+            pt = s.post_type(r["post_type"])
+            title = graphics.clean_title(r.get("title") or r["topic"]) or r["topic"]
+            try:
+                jpg, meta = await design.design(
+                    gemini, title=title, rubric=pt["title"], level=r.get("level") or "",
+                    summary="; ".join(r["items"][:10]), brief=r["topic"],
+                    words=design.image_words(r["items"], r["post_type"]),
+                    kicker=f"{pt['title']} · {r.get('level') or ''}".strip(" ·"),
+                    logo_path=ROOT / "assets" / "logo_white.png", recent=recent,
+                    check=lambda img, **kw: qa.check_image(gemini, img, **kw))
+            except Exception as exc:  # noqa: BLE001
+                gh_annotate("warning", f"{title}: {exc}")
+                continue
+            recent.insert(0, meta)
+            done += 1
+            (out / f"{done:02d}_{r['post_type']}.jpg").write_bytes(jpg)
+            print(f"{done:02d} {r['post_type']:18} {meta['font']:20} {meta['placement']:12} "
+                  f"{meta['direction'][:50]} | {meta['concept'][:90]}")
+        (out / "meta.json").write_text(_json.dumps(recent, ensure_ascii=False, indent=1))
+    finally:
+        await gemini.aclose()
+        await eleven.aclose()
+    gh_annotate("notice", f"Dizayn namunalari: {done} ta")
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Jasur | Turk tili avtopost")
     p.add_argument("--check", action="store_true", help="kalitlar va ulanishlarni tekshirish")
@@ -295,6 +338,7 @@ def main() -> None:
                    help="chiqmay qolgan postni qayta chiqarish (ID bo'lmasa — bugungi oxirgisi)")
     p.add_argument("--announce", metavar="PAPKA", help="elon/PAPKA dagi e'lonni kanalga chiqarish")
     p.add_argument("--voices", action="store_true", help="ElevenLabs ovozlari ro'yxati")
+    p.add_argument("--design-samples", type=int, metavar="N", help="N ta kreativ dizayn namunasi (out/dizayn)")
     a = p.parse_args()
     s = load_settings()
     setup_logging(s)
@@ -312,6 +356,8 @@ def main() -> None:
         asyncio.run(run_announce(s, a.announce))
     elif a.voices:
         asyncio.run(list_voices(s))
+    elif a.design_samples:
+        asyncio.run(design_samples(s, a.design_samples))
     else:
         from enturk.bot import run
         run(s)

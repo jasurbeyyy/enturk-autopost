@@ -1,6 +1,6 @@
-"""Kunlik testlar: 5 ta grammatika + 5 ta kelime bilgisi, Telegram quiz (QuizBot uslubida).
+"""Haftalik testlar: 10 ta grammatika + 10 ta kelime bilgisi, Telegram quiz (QuizBot uslubida).
 
-  QUIZ WRITER agent → kod tekshiruvi → QUIZ CHECKER agent (har bir savol) → kirish posti + 10 ta quiz
+  QUIZ WRITER agent → kod tekshiruvi → QUIZ CHECKER agent (har bir savol) → kirish posti + 20 ta quiz
 """
 from __future__ import annotations
 
@@ -15,8 +15,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from . import caption as cap
-from . import graphics, planner
+from . import design, graphics, planner
 from .agents import illustrator
+from .agents import qa as qa_agent
 from .db import DB
 from .gemini import GeminiClient
 from .settings import ROOT, Settings
@@ -34,7 +35,8 @@ OPT_LIMIT = 100
 EXPL_LIMIT = 200
 N_OPTIONS = 4
 EXTRA = 3          # har bir turdan nechta zaxira savol so'raladi
-MAX_ROUNDS = 4
+BATCH = 7          # bir raundda har bir turdan ko'pi bilan nechta savol yoziladi
+MAX_ROUNDS = 7
 
 CYRILLIC = re.compile(r"[Ѐ-ӿ]")
 
@@ -147,10 +149,10 @@ Output exactly one JSON object:
 MIN_SCORE = 9
 
 OPENERS = [
-    "Bilimingizni sinab ko'ring! Hozir pastda 10 ta test chiqadi 👇",
-    "Test vaqti keldi! ⏰ 10 ta savol sizni kutmoqda 👇",
-    "Bugun qanchalik tayyorsiz? Keling, tekshirib ko'ramiz 👇",
-    "Kunlik mashq: 5 daqiqa, 10 ta savol. Boshladik! 👇",
+    "Bilimingizni sinab ko'ring! Hozir pastda {n} ta test chiqadi 👇",
+    "Test vaqti keldi! ⏰ {n} ta savol sizni kutmoqda 👇",
+    "Bu hafta qanchalik tayyorsiz? Keling, tekshirib ko'ramiz 👇",
+    "Haftalik mashq: 10 daqiqa, {n} ta savol. Boshladik! 👇",
     "Yangi testlar tayyor! Qalam emas, faqat diqqat kerak 😉👇",
     "Turk tilingizni mustahkamlash vaqti! Quyidagi testlarni yeching 👇",
 ]
@@ -298,7 +300,7 @@ def poll_explanation(q: dict) -> str:
     return full if len(full) <= EXPL_LIMIT and full.count("\n") <= 2 else expl
 
 
-PREFIX_LEN = len(poll_question({"kind": VOCAB, "question": ""}, 10, 10)) + 4   # + standart emoji
+PREFIX_LEN = len(poll_question({"kind": VOCAB, "question": ""}, 20, 20)) + 4   # + standart emoji
 
 
 # ------------------------------------------------------------------ agentlar
@@ -335,7 +337,7 @@ async def make_quiz_set(s: Settings, db: DB, gemini: GeminiClient, *, now: datet
         need = {k: n[k] - len(chosen[k]) for k in n}
         if all(v <= 0 for v in need.values()):
             break
-        ask = {k: (v + EXTRA if v > 0 else 0) for k, v in need.items()}
+        ask = {k: (min(v, BATCH) + EXTRA if v > 0 else 0) for k, v in need.items()}
         taken = [q["question"] for v in chosen.values() for q in v]
         prompt = WRITER_TEMPLATE.format(
             n_grammar=ask[GRAMMAR], n_vocab=ask[VOCAB], level=level, date=f"{now.astimezone(s.tz):%Y-%m-%d}",
@@ -378,7 +380,7 @@ async def make_quiz_set(s: Settings, db: DB, gemini: GeminiClient, *, now: datet
                  qa={"rejected": len(rejected), "reasons": rejected[-20:]})
     qs.intro_caption = intro_caption(s, qs, rng)
     if with_image:
-        qs.image = intro_image(s, qs, rng)
+        qs.image = await intro_image_creative(s, gemini, qs, rng, hist)
     return qs
 
 
@@ -487,22 +489,46 @@ def intro_caption(s: Settings, qs: QuizSet, rng: random.Random) -> str:
     nv = sum(q["kind"] == VOCAB for q in qs.questions)
     def e(x: str) -> str:
         return html.escape(x, quote=False)
-    lines = [f"🧠 <b>[{qs.level}] KUNLIK TEST — {len(qs.questions)} ta savol</b>", "",
-             e(rng.choice(OPENERS)), "",
+    lines = [f"🧠 <b>[{qs.level}] HAFTALIK TEST — {len(qs.questions)} ta savol</b>", "",
+             e(rng.choice(OPENERS).format(n=len(qs.questions))), "",
              f"📘 <b>{ng} ta grammatika</b>" + (f" — {e(qs.grammar_focus)}" if qs.grammar_focus else ""),
              f"📗 <b>{nv} ta kelime bilgisi</b>" + (f" — {e(qs.vocab_theme)}" if qs.vocab_theme else ""),
              "",
              "✍️ Javobni belgilang: to'g'ri javob darhol ko'rinadi, xato bo'lsa 💡 izohni o'qing.",
              "🏆 Nechta to'g'ri topdingiz? Natijangizni izohlarda yozing 👇",
-             "", cap.build_footer(None, s.cfg["signature"], [qc["hashtag"], qs.level])]
+             "", cap.build_footer(None, s.cfg["signature"], [qc["hashtag"], qs.level],
+                                  links=s.cfg.get("links"))]
     return "\n".join(lines)
+
+
+async def intro_image_creative(s: Settings, gemini: GeminiClient, qs: QuizSet, rng: random.Random,
+                               hist: list[dict]) -> bytes:
+    """Haftalik test posti rasmi: har safar yangi kreativ dizayn; ishlamasa eski maket."""
+    if (s.cfg.get("models") or {}).get("image_mode", "kreativ") == "kreativ":
+        recent = [r["quiz"].get("qa", {}).get("design") for r in hist]
+        try:
+            jpg, meta = await design.design(
+                gemini, title="Haftalik test", rubric="Haftalik test", level=qs.level,
+                summary=f"Weekly Turkish quiz: {len(qs.questions)} multiple-choice questions. "
+                        f"Grammar: {qs.grammar_focus}. Vocabulary: {qs.vocab_theme}.",
+                brief="a joyful, energetic visual about taking a Turkish language quiz / challenge "
+                      "(e.g. a big checkmark, a trophy, a stopwatch, a student solving puzzles) — no text",
+                words=[], kicker=f"{len(qs.questions)} ta savol · {qs.level}",
+                logo_path=ROOT / "assets" / "logo_white.png", recent=[d for d in recent if d],
+                check=lambda img, **kw: qa_agent.check_image(gemini, img, **kw),
+                seed=rng.randint(0, 2**31))
+            qs.qa["design"] = meta
+            return jpg
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Test rasmi uchun kreativ dizayn ishlamadi: %s", str(exc)[:200])
+    return intro_image(s, qs, rng)
 
 
 def intro_image(s: Settings, qs: QuizSet, rng: random.Random) -> bytes:
     theme = rng.choice(list(graphics.THEMES))
     footer = rng.choice(graphics.FOOTERS)
     ctx = graphics.Ctx(
-        title="Bugungi testlar", label="KUNLIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE",
+        title="Haftalik test", label="HAFTALIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE",
         items=[f"{sum(q['kind'] == GRAMMAR for q in qs.questions)} ta grammatika",
                f"{sum(q['kind'] == VOCAB for q in qs.questions)} ta kelime bilgisi",
                "Javob va izoh bilan"],
@@ -514,7 +540,7 @@ def intro_image(s: Settings, qs: QuizSet, rng: random.Random) -> bytes:
     cfg = s.cfg
     return illustrator.compose(
         b.getvalue(), logo_path=ROOT / "assets" / "logo_white.png", theme=theme, footer=footer,
-        label="KUNLIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE", band=int(cfg["brand"].get("band_height", 150)))
+        label="HAFTALIK TEST", sublabel=f"{qs.level}  ·  TÜRKÇE", band=int(cfg["brand"].get("band_height", 150)))
 
 
 # ------------------------------------------------------------------ admin uchun ko'rinish

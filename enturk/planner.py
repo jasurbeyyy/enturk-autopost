@@ -20,6 +20,39 @@ def slot_times(cfg: dict) -> list[str]:
     return sorted({e["time"] for day in cfg["weekly"].values() for e in day})
 
 
+AUTO = "auto"
+DEFAULT_ROTATION = ["yangi_sozlar", "haqiqiy_diolog", "kunlik_iboralar", "hayotiy_maslahat",
+                    "mavzuli_lugat", "imtihon"]
+
+
+def rotation_types(cfg: dict) -> list[str]:
+    rot = (cfg.get("rotation") or {}).get("types") or DEFAULT_ROTATION
+    return [t for t in rot if t in cfg.get("post_types", {})] or list(cfg.get("post_types", {}))[:1]
+
+
+def choose_type(cfg: dict, entry: dict, recent_types: list[str], slot: datetime | None = None) -> str:
+    """Jadvaldagi `type: auto` uchun post turini tanlaydi.
+
+    recent_types — kanalga chiqqan postlar turlari, eng yangisi birinchi.
+    Oxirgi `no_repeat` ta postning turi qaytarilmaydi, qolganlaridan eng kam ishlatilgani olinadi."""
+    t = entry.get("type", AUTO)
+    if t != AUTO:
+        return t
+    options = rotation_types(cfg)
+    no_repeat = int((cfg.get("rotation") or {}).get("no_repeat", 2))
+    recent = [r for r in recent_types if r in options]
+    banned = set(recent[:min(no_repeat, len(options) - 1)])
+    pool = [o for o in options if o not in banned] or options
+    rng = random.Random(slot.isoformat() if slot else None)
+    return pick_least_used(pool, recent[:len(options) * 3], rng)
+
+
+def type_title(cfg: dict, t: str) -> str:
+    if t == AUTO:
+        return "Aylanma mavzu"
+    return (cfg.get("post_types", {}).get(t) or {}).get("title", t)
+
+
 def entry_for(cfg: dict, slot_local: datetime) -> dict | None:
     day = DAYS[slot_local.weekday()]
     hhmm = slot_local.strftime("%H:%M")

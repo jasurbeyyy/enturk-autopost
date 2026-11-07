@@ -162,7 +162,8 @@ class SlotRunner:
                 log.info("Yaqin orada chiqarilmagan post yo'q — tugadi")
                 return
             slot, entry = found
-            post_type, test = entry["type"], False
+            post_type = planner.choose_type(self.s.cfg, entry, self.db.published_types(), slot)
+            test = False
         pt = self.s.post_type(post_type)
         log.info("Post: %s, vaqti %s", post_type, slot.astimezone(self.s.tz))
         await self._skip_old_updates()

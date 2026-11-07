@@ -63,8 +63,8 @@ def env(tmp_path, monkeypatch):
     s.eleven_key = "test"
     for k in s.cfg["elevenlabs"]["voices"]:
         s.cfg["elevenlabs"]["voices"][k] = f"mock-{k.split('_')[1]}"
-    # 2026-09-28 dushanba, 07:07 Toshkent
-    clock = Clock(datetime(2026, 9, 28, 7, 7, tzinfo=s.tz))
+    # 2026-09-28 dushanba, 09:07 Toshkent
+    clock = Clock(datetime(2026, 9, 28, 9, 7, tzinfo=s.tz))
     monkeypatch.setattr(oneshot, "utcnow", clock.now)
     db = DB(tmp_path / "e.db")
     return s, db, clock
@@ -82,26 +82,26 @@ def test_nothing_pressed_publishes_at_slot(env):
     chan = [x[0] for x in tg.sent if x[1] == "@jasurturktili"]
     assert admin == ["photo", "audio", "text"] and chan == ["photo", "audio"]
     (d,) = db.by_status("published")
-    assert parse_iso(d["publish_at"]).astimezone(s.tz).strftime("%H:%M") == "08:00"
+    assert parse_iso(d["publish_at"]).astimezone(s.tz).strftime("%H:%M") == "10:00"
     assert "Kanalga chiqdi" in tg.edits[-1]
 
 
 def test_regen_then_publish_late(env):
     s, db, clock = env
-    regen_at = datetime(2026, 9, 28, 7, 56, tzinfo=s.tz)
+    regen_at = datetime(2026, 9, 28, 9, 56, tzinfo=s.tz)
     tg = FakeTG(clock, script=[(regen_at, "regen:LAST")])
     asyncio.run(_runner(s, db, tg).run())
     assert len(db.by_status("cancelled")) == 1
     (d,) = db.by_status("published")
     pub = parse_iso(d["publish_at"]).astimezone(s.tz)
-    assert pub.strftime("%H:%M") >= "08:06"          # asl vaqt o'tsa ham chiqdi
+    assert pub.strftime("%H:%M") >= "10:06"          # asl vaqt o'tsa ham chiqdi
     assert [x[0] for x in tg.sent if x[1] == "@jasurturktili"] == ["photo", "audio"]  # faqat bitta post
     assert [x[0] for x in tg.sent if x[1] == 111].count("photo") == 2
 
 
 def test_stale_button_ignored_and_now_publishes(env):
     s, db, clock = env
-    t = datetime(2026, 9, 28, 7, 52, tzinfo=s.tz)
+    t = datetime(2026, 9, 28, 9, 52, tzinfo=s.tz)
     tg = FakeTG(clock, script=[(t, "regen:9999"), (t, "now:LAST")])
     asyncio.run(_runner(s, db, tg).run())
     assert any("eskirgan" in a for a in tg.answers)
@@ -112,10 +112,10 @@ def test_stale_button_ignored_and_now_publishes(env):
 def test_already_published_slot_is_skipped(env):
     s, db, clock = env
     asyncio.run(_runner(s, db, FakeTG(clock)).run())
-    clock.t = datetime(2026, 9, 28, 7, 30, tzinfo=s.tz)   # qayta ishga tushsa
+    clock.t = datetime(2026, 9, 28, 9, 30, tzinfo=s.tz)   # qayta ishga tushsa
     tg2 = FakeTG(clock)
     asyncio.run(_runner(s, db, tg2).run())
-    # 08:00 allaqachon chiqqan, 13:00 hali uzoq → hech narsa qilinmaydi
+    # 10:00 allaqachon chiqqan, 18:00 hali uzoq → hech narsa qilinmaydi
     assert len(db.by_status("published")) == 1 and tg2.sent == []
 
 
@@ -138,16 +138,19 @@ def test_without_elevenlabs_posts_photo_only(env):
 
 
 def test_late_run_still_catches_missed_slot(env):
-    """GitHub soatlab kechiksa: 08:00 posti 10:30 da ham chiqariladi (13:00 hali uzoq)."""
+    """GitHub soatlab kechiksa: 10:00 posti 13:30 da ham chiqariladi (18:00 hali uzoq)."""
     s, db, clock, *_ = env
     r = _runner_for_late(s, db)
-    slot = r.find_slot(datetime(2026, 10, 19, 10, 30, tzinfo=s.tz))
-    assert slot and slot[0].hour == 8
+    slot = r.find_slot(datetime(2026, 10, 19, 13, 30, tzinfo=s.tz))
+    assert slot and slot[0].hour == 10
+    assert slot[1]["type"] == "auto"
 
 
 def test_missed_slot_skipped_when_next_is_near(env):
-    """11:30 da: 08:00 kech qolgan, lekin 13:00 yaqin → 13:00 tayyorlanadi, ikkita post ketma-ket chiqmaydi."""
+    """Keyingi post yaqin bo'lsa, kech qolgani tashlanadi — ikkita post ketma-ket chiqmaydi."""
     s, db, clock, *_ = env
+    s.cfg["weekly"] = {d: [{"time": "10:00", "type": "auto"}, {"time": "13:00", "type": "auto"}]
+                       for d in s.cfg["weekly"]}
     r = _runner_for_late(s, db)
     slot = r.find_slot(datetime(2026, 10, 19, 11, 30, tzinfo=s.tz))
     assert slot and slot[0].hour == 13
@@ -156,11 +159,25 @@ def test_missed_slot_skipped_when_next_is_near(env):
 def test_too_late_slot_dropped(env):
     s, db, clock, *_ = env
     r = _runner_for_late(s, db)
-    assert r.find_slot(datetime(2026, 10, 19, 12, 0, tzinfo=s.tz)) is not None
-    # 08:00 dan 5 soat o'tdi va 13:00 ham o'tib, chiqib bo'lgan → hech narsa
-    did = db.create_draft(slot_at=datetime(2026, 10, 19, 13, 0, tzinfo=s.tz), post_type="x", lang="tr")
-    db.update(did, status="published")
-    assert r.find_slot(datetime(2026, 10, 19, 14, 0, tzinfo=s.tz)) is None
+    assert r.find_slot(datetime(2026, 10, 19, 13, 0, tzinfo=s.tz)) is not None
+    # 10:00 dan 5 soat o'tdi → kech qolgan post endi chiqmaydi, 18:00 hali uzoq
+    assert r.find_slot(datetime(2026, 10, 19, 15, 1, tzinfo=s.tz)) is None
+
+
+def test_post_types_rotate_between_slots(env, monkeypatch):
+    import enturk.pipeline as pl
+    monkeypatch.setattr(pl, "STRICT_DEDUPE_TYPES", set())   # soxta yozuvchi har doim bir xil so'zlar beradi
+    s, db, clock = env
+    seen = []
+    for day in range(3):
+        for hh in (10, 18):
+            clock.t = datetime(2026, 9, 28 + day, hh - 1, 7, tzinfo=s.tz)
+            asyncio.run(_runner(s, db, FakeTG(clock)).run())
+            seen.append(db.by_status("published")[-1]["post_type"]
+                        if len(db.by_status("published")) > len(seen) else None)
+    assert None not in seen and len(seen) == 6
+    assert all(a != b for a, b in zip(seen, seen[1:]))     # ketma-ket bir xil tur chiqmaydi
+    assert len(set(seen)) >= 5                             # turlar aylanib turadi
 
 
 def _runner_for_late(s, db):
