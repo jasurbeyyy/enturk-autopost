@@ -1,6 +1,7 @@
 # Jasur | Turk tili (@jasurturktili) — avtomatik post tizimi
 
-Bu tizim @jasurturktili kanaliga kuniga 3 ta turk tili posti tayyorlab chiqaradi: 08:00, 13:00 va 20:00 da (Toshkent vaqti). Bundan tashqari har kuni 17:00 da 10 ta test (quiz) chiqadi.
+Bu tizim @jasurturktili kanaliga kuniga 2 ta turk tili posti tayyorlab chiqaradi: 10:00 va 18:00 da (Toshkent vaqti). Post mavzusi aylanib turadi: yangi so'zlar, diologlar, iboralar, hayotiy maslahat, mavzuli lug'at, imtihon. Bundan tashqari haftada 1 marta (yakshanba 14:00) 20 ta savollik test (quiz) chiqadi.
+Har bir post matni oxirida Telegram va Instagram havolalari bo'ladi.
 U **GitHub Actions**'da bepul ishlaydi, server kerak emas.
 
 ## Qanday ishlaydi
@@ -14,7 +15,7 @@ Post tayyorlash bosqichlari:
 | 1 | Tadqiqotchi | Rubrika bo'yicha Google Search orqali yangi, dolzarb mavzu topadi (Gemini) |
 | 2 | Yozuvchi | Uslublar bankidan navbatdagi uslubni tanlab, postni yozadi |
 | 5 | Sifat nazorati | Turkcha grammatika, tarjima, faktlar, uzunlik va takrorlanmaslikni tekshiradi. Xato bo'lsa, post qayta yoziladi |
-| 3 | Rassom | Har bir postga mavzusiga mos grafika chizadi (Gemini'siz, bepul): 8 xil maket (kartochka, katta emoji, chat, test, poster, stikerlar, daftar, Iznik koshinlari), 5 xil sahna (Istanbul, Bosfor, Kappadokiya, lolalar, choy-simit), mavzuli emojilar va **mavzuga mos rang**: 9 ta rang temasi (qizil, ko'k, firuza, yashil, apelsin, binafsha, to'q ko'k, pushti, qahva), har birining o'z naqshi bor. Pastki logo tasmasi 8 xil uslubda (to'lqin, diagonal, suzuvchi karta, lenta, arka va h.k.) navbat bilan almashadi. Ketma-ket postlarda maket, sahna, rang va tasma takrorlanmaydi |
+| 3 | Rassom | Har bir postga **yangi, qolipsiz dizayn** chizadi. Gemini matn modeli shu post uchun alohida SVG illyustratsiya, rang palitrasi va kompozitsiya o'ylab topadi (rasm modeli va billing kerak emas). Kod esa sarlavha, rubrika, 2–4 ta turkcha so'z va JSR logosini qo'yadi, matn o'qilishini (kontrast) o'zi kafolatlaydi. 24 ta badiiy yo'nalish (kollaj, izometriya, Bauhaus, tungi sahna va h.k.), 7 xil matn joyi va 22 ta shrift navbat bilan almashadi, ketma-ket takrorlanmaydi. Naqsh, takroriy bezak va bir xil pastki tasma yo'q. Rasm tekshiruvchi mavzuga mosligini va yozuv yo'qligini tekshiradi. Dizayn chizilmasa, eski kod grafikasi zaxira bo'lib chiqadi |
 | 4 | Diktor | ElevenLabs orqali misollarni o'qiydi. Diologlarda ikki ovoz ishlatiladi |
 | 6 | Admin bot | Post vaqtidan **10 daqiqa oldin** postni sizga yuboradi. Unda **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bor. Hech narsa bosmasangiz, post o'z vaqtida chiqadi |
 
@@ -61,11 +62,11 @@ Repozitoriyda: **Actions → EnTurk avtopost → Run workflow**
 
 Shundan keyin tizim jadval bo'yicha o'zi ishlaydi.
 
-## Kunlik testlar (quiz)
+## Haftalik test (quiz)
 
-Har kuni **17:00** da kanalga avval **"Kunlik test"** posti (rasm bilan) chiqadi, ketidan **10 ta quiz**: 5 ta grammatika va 5 ta kelime bilgisi. Ular QuizBot'dagi kabi ishlaydi: 4 ta variant, bitta to'g'ri javob, xato tanlansa 💡 izoh ko'rinadi.
+Haftada 1 marta, **yakshanba 14:00** da kanalga avval **"Haftalik test"** posti (rasm bilan) chiqadi, ketidan **20 ta quiz**: 10 ta grammatika va 10 ta kelime bilgisi. Ular QuizBot'dagi kabi ishlaydi: 4 ta variant, bitta to'g'ri javob, xato tanlansa 💡 izoh ko'rinadi.
 
-- Har kuni navbatdagi daraja olinadi: A1 → A2 → B1 → B2.
+- Har hafta navbatdagi daraja olinadi: A1 → A2 → B1 → B2.
 - Har bir savol 4 bosqichdan o'tadi:
   1. **Kod tekshiruvi:** 4 ta variant, bitta to'g'ri javob, uzunlik, kirill harfi yo'qligi va takrorlanmaslik.
   2. **O'zbekcha muharrir:** imlo, atamalar va so'z tanlovini tuzatadi. Turkcha qismga tegmaydi, buni kod tekshiradi.
@@ -75,14 +76,16 @@ Har kuni **17:00** da kanalga avval **"Kunlik test"** posti (rasm bilan) chiqadi
 - To'g'ri javob o'rni aralashtiriladi, avvalgi testlar takrorlanmaydi.
 - **10 daqiqa oldin** savol-javoblar sizga keladi, **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bilan. Ko'rib chiqish shart emas: hech narsa bosmasangiz, o'z vaqtida chiqadi.
 - **Sinash:** Actions → EnTurk avtopost → Run workflow → `rejim: sinov_testi`. Testlar faqat sizga keladi. `rejim: test_tahlili` esa Telegram'ga hech narsa yubormaydi, faqat savollarni jurnalda ko'rsatadi.
-- **Sozlash:** `config.yaml` → `quiz` bo'limi (vaqt, kunlar, savollar soni, darajalar). O'chirish uchun `enabled: false`. Vaqtni o'zgartirsangiz, cron'ga tegish shart emas.
+- **Sozlash:** `config.yaml` → `quiz` bo'limi (vaqt, kun, savollar soni, darajalar). O'chirish uchun `enabled: false`. Vaqtni o'zgartirsangiz, cron'ga tegish shart emas.
 
 ## Boshqarish
 
 - **To'xtatish:** Settings → Secrets and variables → Actions → **Variables** bo'limida `PAUSED` = `1` qo'ying. Davom ettirish uchun `0` qiling.
 - **Navbatchi:** Actions bo'limida "EnTurk navbatchi" doim bitta ishlab turgan holatda ko'rinadi. Bu normal holat: u keyingi post vaqtini kutyapti. Zanjir biror sababdan uzilsa, 3 soat ichida o'zi qayta boshlanadi. Qo'lda boshlash uchun: **Actions → EnTurk navbatchi → Run workflow**.
 - **Chiqmay qolgan post:** **Actions → EnTurk avtopost → Run workflow → `rejim: qayta_chiqarish`**. Raqamni bo'sh qoldirsangiz, bugungi chiqmay qolgan oxirgi post yangi imzo va logo bilan chiqadi.
-- **Jadval:** haftalik jadval `config.yaml` → `weekly` bo'limida. Soatlarni o'zgartirsangiz, cron'ga tegish shart emas: tizim har 30 daqiqada o'zi tekshiradi.
+- **Jadval:** `config.yaml` → `weekly` bo'limida (har kuni 10:00 va 18:00, `type: auto`). Post turi `rotation` ro'yxatidan aylanib tanlanadi: oxirgi 2 ta postning turi takrorlanmaydi, qolganlaridan eng kam chiqqani olinadi. Biror vaqtga aniq tur kerak bo'lsa, `auto` o'rniga tur nomini yozing. Soatlarni o'zgartirsangiz, cron'ga tegish shart emas: tizim har 30 daqiqada o'zi tekshiradi.
+- **Havolalar:** post oxiridagi Telegram va Instagram havolalari `config.yaml` → `links` bo'limida.
+- **Dizayn namunalari:** Actions → EnTurk avtopost → Run workflow → `rejim: dizayn_namunalari`. Oxirgi postlar mavzularida 6 ta rasm chiziladi va `dizayn-namunalari` tarmog'iga saqlanadi. Telegram'ga hech narsa yubormaydi.
 - **Uslublar:** `styles.yaml` faylida. Yangi uslub qo'shish mumkin.
 - **Takrorlanmaslik:** chiqqan postlar tarixi `state/enturk.db` faylida saqlanadi. GitHub uni har safar o'zi yangilab qo'yadi, uni o'chirmang.
 
