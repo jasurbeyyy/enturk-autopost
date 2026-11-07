@@ -148,7 +148,7 @@ Return JSON:
   "svg": "<svg ...>...</svg>"}}
 
 Headline box rules: inside the canvas with 48 px margins; w between 520 and 984; h between 260 and 640;
-keep the 230x150 px logo corner free."""
+keep a 270x160 px logo corner free."""
 
 
 @dataclass
@@ -207,6 +207,16 @@ def least_recent(options: list[str], recent: list[str], rng: random.Random, k: i
 def font(name: str, size: int) -> ImageFont.FreeTypeFont:
     file = FONTS.get(name, FONTS["Rubik"])[0]
     return ImageFont.truetype(str(FONT_DIR / file), size)
+
+
+def smart_case(t: str) -> str:
+    """Sarlavha o'zbekcha: hammasi katta harf bo'lsa — oddiy gap ko'rinishiga keltiriladi (İ → I)."""
+    t = (t or "").replace("İ", "I").strip()
+    letters = [c for c in t if c.isalpha()]
+    if letters and sum(c.isupper() for c in letters) / len(letters) > 0.55:
+        t = t.lower()
+        t = t[:1].upper() + t[1:]
+    return t
 
 
 def norm_text(t: str) -> str:
@@ -337,7 +347,9 @@ def default_box(placement: str) -> tuple[int, int, int, int]:
     }.get(placement, (60, 70, 960, 420))
 
 
-LOGO_BOX = {"tl": (36, 32), "tr": (W - 36 - 240, 32), "bl": (36, H - 32 - 136), "br": (W - 36 - 240, H - 32 - 136)}
+LOGO_W, LOGO_H = 270, 156
+LOGO_BOX = {"tl": (34, 30), "tr": (W - 34 - LOGO_W, 30), "bl": (34, H - 30 - LOGO_H),
+            "br": (W - 34 - LOGO_W, H - 30 - LOGO_H)}
 
 
 def _overlap(a, b) -> bool:
@@ -350,7 +362,7 @@ def pick_logo_corner(sp: Spec) -> str:
     order = [sp.logo_corner] + [c for c in ("br", "bl", "tr", "tl") if c != sp.logo_corner]
     for c in order:
         lx, ly = LOGO_BOX[c]
-        if not _overlap((lx, ly, 240, 136), sp.box):
+        if not _overlap((lx, ly, LOGO_W, LOGO_H), sp.box):
             return c
     return sp.logo_corner
 
@@ -449,7 +461,7 @@ def draw_text_block(img: Image.Image, sp: Spec, *, title: str, kicker: str, word
 
     d = ImageDraw.Draw(layer)
     upper = FONTS.get(sp.font, ("", "", False))[2]
-    ttl = norm_text(title)
+    ttl = norm_text(smart_case(title))
     ttl = ttl.upper() if upper else ttl   # sarlavha o'zbekcha: oddiy katta harf (i → I)
 
     # kicker (rubrika · daraja)
@@ -514,10 +526,10 @@ def draw_text_block(img: Image.Image, sp: Spec, *, title: str, kicker: str, word
 
 def draw_logo(img: Image.Image, corner: str, logo_path: Path) -> Image.Image:
     lx, ly = LOGO_BOX[corner]
-    mean, _ = region_color(img, (lx, ly, 240, 136))
+    mean, _ = region_color(img, (lx, ly, LOGO_W, LOGO_H))
     color = best_ink(mean, [(255, 255, 255), (22, 22, 28)])
     mask = Image.open(logo_path).convert("RGBA").split()[3]
-    hgt = 128
+    hgt = 148
     wid = int(mask.width * hgt / mask.height)
     mask = mask.resize((wid, hgt), Image.LANCZOS)
     tile = Image.new("RGBA", (wid, hgt), color + (255,))
@@ -527,7 +539,7 @@ def draw_logo(img: Image.Image, corner: str, logo_path: Path) -> Image.Image:
     sh_col = (0, 0, 0) if color == (255, 255, 255) else (255, 255, 255)
     sh = Image.new("RGBA", (wid, hgt), sh_col + (0,))
     sh.putalpha(mask.filter(ImageFilter.GaussianBlur(6)).point(lambda a: int(a * 0.45)))
-    x = lx + (240 - wid) // 2
+    x = lx + (LOGO_W - wid) // 2
     out.alpha_composite(sh, (x + 2, ly + 4))
     out.alpha_composite(tile, (x, ly))
     return out.convert("RGB")
