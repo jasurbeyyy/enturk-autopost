@@ -1,0 +1,77 @@
+[
+ {
+  "layout": "foto",
+  "photo_layout": "duotone",
+  "placement": "bottom",
+  "font": "Montserrat",
+  "photo_id": "CE4foOZGs74",
+  "concept": "foto: mobile phone store counter",
+  "bg": "#1e3a8a",
+  "credit": {
+   "name": "YouVersion",
+   "url": "https://unsplash.com/@youversion?utm_source=jasur_turk_tili&utm_medium=referral"
+  }
+ },
+ {
+  "layout": "foto",
+  "photo_layout": "glass",
+  "placement": "center",
+  "font": "Young Serif",
+  "photo_id": "tgquMvhNLc4",
+  "concept": "foto: restaurant bill payment",
+  "bg": "#b45309",
+  "credit": {
+   "name": "Clay Banks",
+   "url": "https://unsplash.com/@claybanks?utm_source=jasur_turk_tili&utm_medium=referral"
+  }
+ },
+ {
+  "layout": "foto",
+  "photo_layout": "plate",
+  "placement": "top-left",
+  "font": "Alfa Slab One",
+  "photo_id": "47fKvu4niMk",
+  "concept": "foto: dentist examining patient",
+  "bg": "#0369a1",
+  "credit": {
+   "name": "Laurent Yasiel",
+   "url": "https://unsplash.com/@laurentyasiel?utm_source=jasur_turk_tili&utm_medium=referral"
+  }
+ },
+ {
+  "layout": "foto",
+  "photo_layout": "gradient",
+  "placement": "top",
+  "font": "Luckiest Guy",
+  "photo_id": "e1RiqYhSlZI",
+  "concept": "foto: turkish street market",
+  "bg": "#c2410c",
+  "credit": {
+   "name": "Thomas George",
+   "url": "https://unsplash.com/@staticxg7?utm_source=jasur_turk_tili&utm_medium=referral"
+  }
+ },
+ {
+  "layout": "kreativ",
+  "direction": "abstract organic: large fluid blobs in harmonious colours with one recognisable object in the middle",
+  "placement": "bottom",
+  "font": "Abril Fatface",
+  "concept": "Fluid abstract organic blobs surround a central modern studio headphone radiating soundwaves and key insights.",
+  "bg": "#1a1829",
+  "logo": "tr",
+  "problems": []
+ },
+ {
+  "layout": "foto",
+  "photo_layout": "panel",
+  "placement": "left",
+  "font": "Nunito",
+  "photo_id": "XBX9DepYQYQ",
+  "concept": "foto: doctor consultation patient",
+  "bg": "#0d9488",
+  "credit": {
+   "name": "anita shirmohamadi",
+   "url": "https://unsplash.com/@aniiiiiiitam?utm_source=jasur_turk_tili&utm_medium=referral"
+  }
+ }
+]
