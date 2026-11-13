@@ -108,6 +108,10 @@ class FakeGemini:
                     "audio_title": "Oshxonada — 10 ta yangi so'z", "items": [w for w, _ in WORDS],
                     "image_brief": "a bright Turkish kitchen with a copper pot, pan and tea glasses",
                     "visual": {"emojis": ["🍳", "🥘", "🔪", "🧊"], "scene": "tea"}}, []
+        if "PHOTO EDITOR" in system:
+            self.calls.append("photo_plan")
+            return {"photo_ok": True, "queries": ["turkish kitchen utensils", "kitchen pots", "kitchen"],
+                    "colors": {"main": "#B45309", "accent": "#FDE68A"}}, []
         if "ART DIRECTOR" in system:
             self.calls.append("design")
             return dict(MOCK_DESIGN), []

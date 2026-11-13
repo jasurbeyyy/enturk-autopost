@@ -158,6 +158,23 @@ async def check(s: Settings) -> None:
         else:
             res(False, "GEMINI_API_KEY yo'q")
 
+        # Unsplash
+        if s.unsplash_key:
+            from enturk.photo import UnsplashClient, UnsplashError
+            u = UnsplashClient(s.unsplash_key)
+            try:
+                found = await u.search("istanbul", per_page=1)
+                res(bool(found), f"Unsplash: ulandi, shu soatda qolgan so'rovlar: {u.remaining}")
+            except (UnsplashError, httpx.HTTPError) as exc:
+                res(False, f"Unsplash: {str(exc)[:200]}")
+            finally:
+                await u.aclose()
+        else:
+            msg = "⚪ UNSPLASH_ACCESS_KEY yo'q — postlarga faqat illyustratsiya chiziladi"
+            print(msg)
+            lines.append(msg)
+            gh_annotate("notice", msg)
+
         # ElevenLabs
         if s.eleven_key:
             from enturk.eleven import ElevenClient, ElevenError
@@ -288,7 +305,7 @@ async def design_samples(s: Settings, n: int) -> None:
     """Kreativ dizayn namunalari: oxirgi postlar mavzularida N ta rasm chizib out/dizayn/ ga saqlaydi.
     Telegram'ga hech narsa yubormaydi, bazani o'zgartirmaydi."""
     import json as _json
-    from enturk import design, graphics
+    from enturk import design, graphics, photo
     from enturk.agents import qa
     from enturk.db import DB
     gemini, eleven = clients(s)
@@ -304,6 +321,25 @@ async def design_samples(s: Settings, n: int) -> None:
                 break
             pt = s.post_type(r["post_type"])
             title = graphics.clean_title(r.get("title") or r["topic"]) or r["topic"]
+            kicker = f"{pt['title']} · {r.get('level') or ''}".strip(" ·")
+            if s.photo_allowed(r["post_type"]):
+                u = photo.UnsplashClient(s.unsplash_key)
+                try:
+                    jpg, meta = await photo.make(
+                        gemini, u, title=title, rubric=pt["title"], level=r.get("level") or "",
+                        summary="; ".join(r["items"][:10]), brief=r["topic"],
+                        words=design.image_words(r["items"], r["post_type"]), kicker=kicker,
+                        logo_path=ROOT / "assets" / "logo_white.png", recent=recent)
+                    recent.insert(0, meta)
+                    done += 1
+                    (out / f"{done:02d}_foto_{r['post_type']}.jpg").write_bytes(jpg)
+                    print(f"{done:02d} {r['post_type']:18} FOTO {meta['photo_layout']:9} {meta['placement']:12} "
+                          f"{meta['font']:20} {meta['concept']} | {meta['credit']['name']}")
+                    continue
+                except Exception as exc:  # noqa: BLE001
+                    gh_annotate("warning", f"{title}: foto ishlamadi ({str(exc)[:150]}) — illyustratsiya")
+                finally:
+                    await u.aclose()
             try:
                 jpg, meta = await design.design(
                     gemini, title=title, rubric=pt["title"], level=r.get("level") or "",

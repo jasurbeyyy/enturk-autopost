@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-from .. import design, graphics
+from .. import design, graphics, photo
 from ..gemini import GeminiClient
 from . import qa
 
@@ -77,19 +77,34 @@ async def illustrate(gemini: GeminiClient, *, cfg: dict, root: Path, lang: str, 
                      recent_themes: list[str] | None = None,
                      recent_footers: list[str] | None = None,
                      recent_designs: list[dict] | None = None, rubric: str = "", level: str = "",
-                     summary: str = "") -> tuple[bytes, dict]:
+                     summary: str = "", unsplash_key: str = "", photo_ok: bool = False) -> tuple[bytes, dict]:
     """Rasm yaratadi. (jpeg_baytlar, {"layout", "scene", "theme", "footer", ...}) qaytaradi.
 
     image_mode: "kreativ" (standart) — har bir postga yangi, qolipsiz dizayn (design.py);
     ishlamasa "grafika" (eski kod maketlari) zaxira sifatida chiziladi."""
     band = int(cfg["brand"].get("band_height", 150))
     mode = cfg["models"].get("image_mode", "kreativ")
+    title = graphics.clean_title(topic) or rubric or label
+    kicker = f"{rubric or label.title()} · {level}".strip(" ·")
+    max_row = int((cfg.get("photo") or {}).get("max_in_row", 3))
+    if photo_ok and unsplash_key and photo.photo_streak(recent_designs or []) < max_row:
+        client = photo.UnsplashClient(unsplash_key)
+        try:
+            jpg, meta = await photo.make(
+                gemini, client, title=title, rubric=rubric or label.title(), level=level, summary=summary,
+                brief=brief, words=design.image_words(items, post_type), kicker=kicker,
+                logo_path=root / "assets" / "logo_white.png", recent=recent_designs or [], check=check)
+            return jpg, {"layout": "foto", "scene": None, "theme": None, "footer": None, "design": meta}
+        except Exception as exc:  # noqa: BLE001 — foto bo'lmasa illyustratsiya chiziladi
+            log.warning("Unsplash fotosi ishlatilmadi, illyustratsiya chiziladi: %s", str(exc)[:300])
+        finally:
+            await client.aclose()
     if mode == "kreativ":
         try:
             jpg, meta = await design.design(
-                gemini, title=graphics.clean_title(topic) or rubric or label, rubric=rubric or label.title(),
+                gemini, title=title, rubric=rubric or label.title(),
                 level=level, summary=summary, brief=brief, words=design.image_words(items, post_type),
-                kicker=f"{rubric or label.title()} · {level}".strip(" ·"),
+                kicker=kicker,
                 logo_path=root / "assets" / "logo_white.png", recent=recent_designs or [],
                 check=(lambda img, **kw: qa.check_image(gemini, img, **kw)) if check else None)
             return jpg, {"layout": "kreativ", "scene": None, "theme": None, "footer": None, "design": meta}

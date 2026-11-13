@@ -23,6 +23,7 @@ class Settings:
     cfg: dict
     styles: list[dict]
     data_dir: Path
+    unsplash_key: str = ""
     tz: ZoneInfo = field(init=False)
 
     def __post_init__(self) -> None:
@@ -39,6 +40,11 @@ class Settings:
     def audio_enabled(self) -> bool:
         """ElevenLabs kaliti bo'lmasa, postlar audiosiz chiqadi."""
         return bool(self.eleven_key) and os.getenv("AUDIO", "1") != "0"
+
+    def photo_allowed(self, post_type: str) -> bool:
+        """Bu post turiga Unsplash fotosi ishlatilishi mumkinmi (kalit bor, rejim yoqilgan)."""
+        p = self.cfg.get("photo") or {}
+        return bool(self.unsplash_key) and bool(p.get("enabled", True)) and post_type in (p.get("types") or [])
 
     @property
     def media_dir(self) -> Path:
@@ -71,4 +77,5 @@ def load_settings(root: Path | None = None) -> Settings:
         cfg=cfg,
         styles=styles,
         data_dir=data_dir,
+        unsplash_key=os.getenv("UNSPLASH_ACCESS_KEY", "").strip(),
     )

@@ -44,6 +44,17 @@ elevenlabs:
     tr_male: "qHdpkLDluFJPQyEvzZ5E"     # Mehmet Akif — erkak, standart turkcha, e-learning
   pause_ms: 650
 
+# ---------------- Unsplash fotolari ----------------
+# Hayotiy mavzular (so'zlar, iboralar, diolog, maslahat) uchun Unsplash'dan mavzuga mos foto olinadi,
+# ustiga sarlavha, turkcha so'zlar va JSR logosi qo'yiladi. Imtihon va boshqa mavhum mavzular,
+# hamda foto topilmasa — odatdagi kreativ illyustratsiya chiziladi.
+# Kalit: GitHub Secrets → UNSPLASH_ACCESS_KEY (bo'lmasa fotolar ishlatilmaydi).
+# Post matniga "📷 Foto: muallif / Unsplash" qatori qo'shiladi (Unsplash qoidasi).
+photo:
+  enabled: true
+  types: [yangi_sozlar, mavzuli_lugat, kunlik_iboralar, haqiqiy_diolog, hayotiy_maslahat]
+  max_in_row: 3        # ketma-ket nechta fotodan keyin bitta illyustratsiya chiqadi (xilma-xillik uchun)
+
 # ---------------- Brend ----------------
 brand:
   red: "#E30A17"

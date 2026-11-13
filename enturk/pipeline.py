@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from . import caption as cap
-from . import planner
+from . import photo, planner
 from .agents import illustrator, qa, research, voice, writer
 from .db import DB
 from .eleven import ElevenClient
@@ -105,9 +105,14 @@ class Pipeline:
         level = planner.pick_least_used(pt["levels"], ctx["recent_levels"])
         style = planner.pick_style(s.styles, type_key, ctx["recent_styles"], exclude=exclude_style)
         exam = planner.pick_least_used(pt["exams"], ctx["recent_exams"]) if pt.get("exams") else None
-        footer = cap.build_footer(pt.get("audio_line") if s.audio_enabled else None, s.cfg["signature"],
-                                  [pt.get("hashtag", type_key), level], links=s.cfg.get("links"))
-        _, footer_text = cap.sanitize(footer)
+        def make_footer(credit: str = "") -> str:
+            return cap.build_footer(pt.get("audio_line") if s.audio_enabled else None, s.cfg["signature"],
+                                    [pt.get("hashtag", type_key), level], links=s.cfg.get("links"),
+                                    credit=credit)
+        footer = make_footer()
+        photo_ok = s.photo_allowed(type_key)
+        # foto chiqsa, matn oxiriga muallif qatori qo'shiladi — uzunlik tekshiruvi uchun joy qoldiriladi
+        _, footer_text = cap.sanitize(make_footer(photo.CREDIT_PLACEHOLDER) if photo_ok else footer)
         body_limit = cap.CAPTION_LIMIT - cap.visible_len(footer_text) - 30
         avoid = list(avoid_topics or [])
         log.info("Post: %s | daraja %s | uslub %s | imtihon %s", type_key, level, style["id"], exam)
@@ -186,7 +191,6 @@ class Pipeline:
         else:
             raise PipelineError("Sifat nazoratidan o'tmadi: " + "; ".join(last_issues[:5]))
 
-        full_caption = draft["caption_html"].rstrip() + "\n\n" + footer
         label = pt["title"].upper()
         sublabel = f"{level}  ·  TÜRKÇE"
 
@@ -199,7 +203,8 @@ class Pipeline:
             recent_layouts=ctx["recent_layouts"], recent_scenes=ctx["recent_scenes"],
             recent_themes=ctx["recent_themes"], recent_footers=ctx["recent_footers"],
             recent_designs=ctx["recent_designs"], rubric=pt["title"], level=level,
-            summary="; ".join(str(i) for i in (draft.get("items") or [])[:10]))
+            summary="; ".join(str(i) for i in (draft.get("items") or [])[:10]),
+            unsplash_key=s.unsplash_key, photo_ok=photo_ok)
         if s.audio_enabled:
             audio_task = voice.synthesize(
                 self.eleven, lines=draft["audio"], voices=s.cfg["elevenlabs"]["voices"], lang=lang,
@@ -208,6 +213,8 @@ class Pipeline:
         else:
             (image, visual_meta), audio = await image_task, b""
 
+        credit = photo.credit_from_meta(visual_meta.get("design"))
+        full_caption = draft["caption_html"].rstrip() + "\n\n" + (make_footer(credit) if credit else footer)
         qa_meta = {"verdict": qa_result.get("verdict"), "score": qa_result.get("score"),
                    "issues": qa_result.get("issues", []), "exam": exam,
                    "layout": visual_meta.get("layout"), "scene": visual_meta.get("scene"),

@@ -15,7 +15,7 @@ Post tayyorlash bosqichlari:
 | 1 | Tadqiqotchi | Rubrika bo'yicha Google Search orqali yangi, dolzarb mavzu topadi (Gemini) |
 | 2 | Yozuvchi | Uslublar bankidan navbatdagi uslubni tanlab, postni yozadi |
 | 5 | Sifat nazorati | Turkcha grammatika, tarjima, faktlar, uzunlik va takrorlanmaslikni tekshiradi. Xato bo'lsa, post qayta yoziladi |
-| 3 | Rassom | Har bir postga **yangi, qolipsiz dizayn** chizadi. Gemini matn modeli shu post uchun alohida SVG illyustratsiya, rang palitrasi va kompozitsiya o'ylab topadi (rasm modeli va billing kerak emas). Kod esa sarlavha, rubrika, 2–4 ta turkcha so'z va JSR logosini qo'yadi, matn o'qilishini (kontrast) o'zi kafolatlaydi. 24 ta badiiy yo'nalish (kollaj, izometriya, Bauhaus, tungi sahna va h.k.), 7 xil matn joyi va 22 ta shrift navbat bilan almashadi, ketma-ket takrorlanmaydi. Naqsh, takroriy bezak va bir xil pastki tasma yo'q. Rasm tekshiruvchi mavzuga mosligini va yozuv yo'qligini tekshiradi. Dizayn chizilmasa, eski kod grafikasi zaxira bo'lib chiqadi |
+| 3 | Rassom | **Hayotiy mavzularda** (yangi so'zlar, iboralar, lug'at, diolog, maslahat) Unsplash'dan mavzuga mos **haqiqiy foto** oladi: Gemini qidiruv so'zlari va rangni tanlaydi, foto mavzuga mosligi tekshiriladi, oxirgi postlardagi fotolar takrorlanmaydi. Foto ustiga 7 xil maketdan biri (gradient, rangli plashka, duoton, panel, karta, shisha, vinyetka) bilan sarlavha, so'zlar va JSR logosi qo'yiladi, post matniga esa "📷 Foto: muallif / Unsplash" qatori qo'shiladi. Ketma-ket 3 ta fotodan keyin bitta illyustratsiya chiqadi. Imtihon kabi mavhum mavzularda yoki foto topilmasa: Har bir postga **yangi, qolipsiz dizayn** chizadi. Gemini matn modeli shu post uchun alohida SVG illyustratsiya, rang palitrasi va kompozitsiya o'ylab topadi (rasm modeli va billing kerak emas). Kod esa sarlavha, rubrika, 2–4 ta turkcha so'z va JSR logosini qo'yadi, matn o'qilishini (kontrast) o'zi kafolatlaydi. 24 ta badiiy yo'nalish (kollaj, izometriya, Bauhaus, tungi sahna va h.k.), 7 xil matn joyi va 22 ta shrift navbat bilan almashadi, ketma-ket takrorlanmaydi. Naqsh, takroriy bezak va bir xil pastki tasma yo'q. Rasm tekshiruvchi mavzuga mosligini va yozuv yo'qligini tekshiradi. Dizayn chizilmasa, eski kod grafikasi zaxira bo'lib chiqadi |
 | 4 | Diktor | ElevenLabs orqali misollarni o'qiydi. Diologlarda ikki ovoz ishlatiladi |
 | 6 | Admin bot | Post vaqtidan **10 daqiqa oldin** postni sizga yuboradi. Unda **🔄 Qayta ishlash** va **✅ Hozir chiqarish** tugmalari bor. Hech narsa bosmasangiz, post o'z vaqtida chiqadi |
 
@@ -46,6 +46,7 @@ Repozitoriyda: **Settings → Secrets and variables → Actions → New reposito
 | `TELEGRAM_BOT_TOKEN` | @BotFather bergan token |
 | `GEMINI_API_KEY` | https://aistudio.google.com/apikey (rasm uchun billing yoqilgan bo'lishi kerak) |
 | `ELEVENLABS_API_KEY` | elevenlabs.io → Profile → API Keys |
+| `UNSPLASH_ACCESS_KEY` | unsplash.com/oauth/applications → New Application → **Access Key** (bo'lmasa fotolar ishlatilmaydi, faqat illyustratsiya chiqadi) |
 | `ADMIN_IDS` | Telegram ID raqamingiz |
 
 Kanal nomi boshqa bo'lsa, **Variables** bo'limida `CHANNEL_ID` o'zgaruvchisini yarating.
@@ -85,7 +86,8 @@ Haftada 1 marta, **yakshanba 14:00** da kanalga avval **"Haftalik test"** posti 
 - **Chiqmay qolgan post:** **Actions → EnTurk avtopost → Run workflow → `rejim: qayta_chiqarish`**. Raqamni bo'sh qoldirsangiz, bugungi chiqmay qolgan oxirgi post yangi imzo va logo bilan chiqadi.
 - **Jadval:** `config.yaml` → `weekly` bo'limida (har kuni 10:00 va 18:00, `type: auto`). Post turi `rotation` ro'yxatidan aylanib tanlanadi: oxirgi 2 ta postning turi takrorlanmaydi, qolganlaridan eng kam chiqqani olinadi. Biror vaqtga aniq tur kerak bo'lsa, `auto` o'rniga tur nomini yozing. Soatlarni o'zgartirsangiz, cron'ga tegish shart emas: tizim har 30 daqiqada o'zi tekshiradi.
 - **Havolalar:** post oxiridagi Telegram va Instagram havolalari `config.yaml` → `links` bo'limida.
-- **Dizayn namunalari:** Actions → EnTurk avtopost → Run workflow → `rejim: dizayn_namunalari`. Oxirgi postlar mavzularida 6 ta rasm chiziladi va `dizayn-namunalari` tarmog'iga saqlanadi. Telegram'ga hech narsa yubormaydi.
+- **Fotolar:** `config.yaml` → `photo` bo'limi (yoqish/o'chirish, qaysi post turlari, ketma-ket nechta foto). Unsplash bepul kaliti soatiga 50 ta so'rov beradi, bitta postga 2–4 ta ketadi.
+- **Dizayn namunalari:** Actions → EnTurk avtopost → Run workflow → `rejim: dizayn_namunalari`. Oxirgi postlar mavzularida 6 ta rasm (foto va illyustratsiya) chiziladi va `dizayn-namunalari` tarmog'iga saqlanadi. Telegram'ga hech narsa yubormaydi.
 - **Uslublar:** `styles.yaml` faylida. Yangi uslub qo'shish mumkin.
 - **Takrorlanmaslik:** chiqqan postlar tarixi `state/enturk.db` faylida saqlanadi. GitHub uni har safar o'zi yangilab qo'yadi, uni o'chirmang.
 

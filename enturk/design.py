@@ -477,8 +477,11 @@ def draw_text_block(img: Image.Image, sp: Spec, *, title: str, kicker: str, word
         wtext = ""
     w_h = 60 if wtext else 0
 
-    tf, lines, lh = fit_title(ttl, sp.font, w, h - k_h - 24 - w_h - (18 if w_h else 0))
-    block_h = k_h + 22 + lh * len(lines) + (w_h + 18 if w_h else 0)
+    # qo'lyozma shriftlarda harf dumlari pastga chiqadi — so'zlar qatoriga qo'shimcha joy
+    script = sp.font in ("Pacifico", "Lobster", "Caveat")
+    tf, lines, lh = fit_title(ttl, sp.font, w, h - k_h - 24 - w_h - ((48 if script else 18) if w_h else 0))
+    gap = 18 + int(lh * 0.22) if script else 18
+    block_h = k_h + 22 + lh * len(lines) + (w_h + gap if w_h else 0)
     cy = y + max(0, (h - block_h) // 2)
 
     def ax(line_w: float) -> float:
@@ -508,7 +511,7 @@ def draw_text_block(img: Image.Image, sp: Spec, *, title: str, kicker: str, word
         d.text((ax(lw), ty), ln, font=tf, fill=ink)
         ty += lh
     if wtext:
-        ty += 18
+        ty += gap
         d.text((ax(wfont.getlength(wtext)), ty + 6), wtext, font=wfont, fill=accent)
 
     if abs(sp.tilt) >= 0.5:

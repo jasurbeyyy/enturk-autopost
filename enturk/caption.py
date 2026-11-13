@@ -133,7 +133,7 @@ def links_block(links: dict | None) -> str:
 
 
 def build_footer(audio_line: str | None, signature: str, hashtags: list[str],
-                 links: dict | None = None) -> str:
+                 links: dict | None = None, credit: str = "") -> str:
     """Post oxiri: audio qatori, xeshteglar va eng oxirida Telegram + Instagram havolalari.
     Havolalar berilsa, imzo (@kanal) alohida yozilmaydi — u Telegram havolasida bor."""
     lines = []
@@ -142,6 +142,8 @@ def build_footer(audio_line: str | None, signature: str, hashtags: list[str],
     block = links_block(links)
     if not block:
         lines.append(escape(signature, quote=False))
+    if credit:
+        lines.append(credit)          # foto muallifi (Unsplash qoidasi), tayyor HTML
     tags = " ".join("#" + re.sub(r"[^\w]", "", t) for t in hashtags if t)
     if tags:
         lines.append(escape(tags, quote=False))
